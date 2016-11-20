@@ -1,12 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: kim
- * Date: 18/11/16
- * Time: 1:22 PM
- */
-namespace PNX\Tree;
 
+namespace PNX\Tree;
 
 /**
  * Provides a tree implementation.

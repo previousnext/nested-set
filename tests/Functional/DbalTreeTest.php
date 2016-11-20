@@ -4,9 +4,7 @@ namespace PNX\Tree\Tests\Functional;
 
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Platforms\SqlitePlatform;
 use Doctrine\DBAL\Schema\Schema;
-use PNX\Tree\Leaf;
 use PNX\Tree\Storage\DbalTree;
 
 /**
@@ -64,6 +62,34 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(1, $child2->getRevisionId());
     $this->assertEquals(14, $child2->getLeft());
     $this->assertEquals(15, $child2->getRight());
+
+  }
+
+  /**
+   * Tests finding ancestors.
+   */
+  public function testFindAncestors() {
+    $tree = new DbalTree($this->connection);
+
+    $leaf = $tree->getLeaf(7, 1);
+
+    $ancestors = $tree->findAncestors($leaf);
+
+    /* @var Leaf $parent */
+    $parent = $ancestors[1];
+
+    $this->assertEquals(3, $parent->getId());
+    $this->assertEquals(1, $parent->getRevisionId());
+    $this->assertEquals(10, $parent->getLeft());
+    $this->assertEquals(21, $parent->getRight());
+
+    /* @var Leaf $grandparent */
+    $grandparent = $ancestors[0];
+
+    $this->assertEquals(1, $grandparent->getId());
+    $this->assertEquals(1, $grandparent->getRevisionId());
+    $this->assertEquals(1, $grandparent->getLeft());
+    $this->assertEquals(22, $grandparent->getRight());
 
   }
 

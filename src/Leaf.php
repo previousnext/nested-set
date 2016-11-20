@@ -94,6 +94,4 @@ class Leaf {
     return $this->right;
   }
 
-
-
 }

@@ -32,14 +32,6 @@ class DbalTree implements TreeInterface {
    * {@inheritdoc}
    */
   public function addLeaf(Leaf $parent, Leaf $child) {
-//    $this->connection->insert('tree',
-//      [
-//        'id' => $child->getId(),
-//        'revision_id' => $child->getRevisionId(),
-//        'nest' => 1,
-//        'rgt' => 2,
-//      ]
-//    );
   }
 
   /**
@@ -75,14 +67,19 @@ class DbalTree implements TreeInterface {
    * {@inheritdoc}
    */
   public function findAncestors(Leaf $leaf) {
+    $ancestors = [];
     $query = $this->connection->createQueryBuilder();
-    $query->select('t.id', 't.revisionId', 't.nested_left', 't.nested_right')
+    $query->select('t.id', 't.revision_id', 't.nested_left', 't.nested_right')
       ->from('tree', 't')
       ->where('t.nested_left < :nested_left')
       ->andWhere('t.nested_right > :nested_right')
       ->setParameter(':nested_left', $leaf->getLeft())
       ->setParameter(':nested_right', $leaf->getRight());
-    return $query->execute()->fetchAll();
+    $stmt = $query->execute();
+    while ($row = $stmt->fetch()) {
+      $ancestors[] = new Leaf($row['id'], $row['revision_id'], $row['nested_left'], $row['nested_right']);
+    }
+    return $ancestors;
   }
 
   /**
