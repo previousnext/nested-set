@@ -32,6 +32,47 @@ class DbalTree implements TreeInterface {
    * {@inheritdoc}
    */
   public function addLeaf(Leaf $parent, Leaf $child) {
+    // Find right most child.
+    /** @var Leaf $rightChild */
+    $rightChild = $this->findRightMostChild($parent);
+
+    // Move everything across two places.
+    $query = $this->connection->createQueryBuilder();
+    $query->update('tree', 't')
+      ->set('t.nested_right', $rightChild->getRight() + 2)
+      ->where('t.nested_right > :nested_right')
+      ->setParameter(':nested_right', $rightChild->getRight())
+      ->execute();
+
+    $query = $this->connection->createQueryBuilder();
+    $query->update('tree', 't')
+      ->set('t.nested_left', $rightChild->getRight() + 2)
+      ->where('t.nested_left > :nested_right')
+      ->setParameter(':nested_right', $rightChild->getRight())
+      ->execute();
+
+    // Insert the new leaf.
+    $this->connection->insert('tree', [
+      'id' => $child->getId(),
+      'revision_id' => $child->getRevisionId(),
+      'nested_left' => $rightChild->getRight() + 1,
+      'nested_right' => $rightChild->getRight() + 2,
+    ]);
+  }
+
+  /**
+   * Finds the right-most child leaf.
+   *
+   * @param \PNX\Tree\Leaf $parent
+   *   The parent leaf.
+   *
+   * @return \PNX\Tree\Leaf
+   *   The right-most child leaf.
+   */
+  protected function findRightMostChild(Leaf $parent) {
+    $result = $this->connection->fetchAssoc('SELECT t.id, t.revision_id, t.nested_left, t.nested_right FROM tree t WHERE t.nested_right = ? - 1',
+      [$parent->getRight()]);
+    return new Leaf($result['id'], $result['revision_id'], $result['nested_left'], $result['nested_right']);
   }
 
   /**

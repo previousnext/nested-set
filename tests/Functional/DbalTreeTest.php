@@ -5,6 +5,7 @@ namespace PNX\Tree\Tests\Functional;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Schema;
+use PNX\Tree\Leaf;
 use PNX\Tree\Storage\DbalTree;
 
 /**
@@ -90,6 +91,23 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(1, $grandparent->getRevisionId());
     $this->assertEquals(1, $grandparent->getLeft());
     $this->assertEquals(22, $grandparent->getRight());
+
+  }
+
+  /**
+   * Tests adding a leaf.
+   */
+  public function testAddLeaf() {
+    $tree = new DbalTree($this->connection);
+
+    $parent = $tree->getLeaf(3, 1);
+    $child = new Leaf(11, 1);
+
+    $tree->addLeaf($parent, $child);
+
+    $root = $tree->getLeaf(1, 1);
+
+    $descendants = $tree->findDescendants($root);
 
   }
 

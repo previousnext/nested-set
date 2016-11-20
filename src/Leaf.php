@@ -36,6 +36,13 @@ class Leaf {
   protected $right;
 
   /**
+   * The depth.
+   *
+   * @var int
+   */
+  protected $depth;
+
+  /**
    * Leaf constructor.
    *
    * @param int|string $id
@@ -46,12 +53,15 @@ class Leaf {
    *   The left value.
    * @param int $right
    *   The right value.
+   * @param int $depth
+   *   The depth.
    */
-  public function __construct($id, $revisionId = 0, $left = 0, $right = 0) {
+  public function __construct($id, $revisionId = 0, $left = 0, $right = 0, $depth = 0) {
     $this->id = $id;
     $this->revisionId = $revisionId;
     $this->left = $left;
     $this->right = $right;
+    $this->depth = $depth;
   }
 
   /**
@@ -92,6 +102,16 @@ class Leaf {
    */
   public function getRight() {
     return $this->right;
+  }
+
+  /**
+   * Gets the depth.
+   *
+   * @return int
+   *   The depth.
+   */
+  public function getDepth() {
+    return $this->depth;
   }
 
 }
