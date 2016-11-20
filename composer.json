@@ -1,0 +1,32 @@
+{
+    "name": "pnx/tree",
+    "description": "A library for working with tree implementations.",
+    "type": "library",
+    "license": "GPL-2.0+",
+    "authors": [
+        {
+            "name": "Kim Pepper",
+            "email": "kim@pepper.id.au"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "doctrine/dbal": "~2.5"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "PNX\\Tree\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "PNX\\Tree\\Tests\\": "tests"
+        }
+    },
+    "config": {
+        "bin-dir": "bin/"
+    }
+}
