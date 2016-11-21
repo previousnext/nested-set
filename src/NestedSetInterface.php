@@ -5,7 +5,7 @@ namespace PNX\Tree;
 /**
  * Provides a tree implementation.
  */
-interface TreeInterface {
+interface NestedSetInterface {
 
   /**
    * Adds a child to the parent.

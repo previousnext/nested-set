@@ -4,12 +4,12 @@ namespace PNX\Tree\Storage;
 
 use Doctrine\DBAL\Connection;
 use PNX\Tree\Leaf;
-use PNX\Tree\TreeInterface;
+use PNX\Tree\NestedSetInterface;
 
 /**
  * Provides a DBAL implementation of a Tree.
  */
-class DbalTree implements TreeInterface {
+class DbalNestedSet implements NestedSetInterface {
 
   /**
    * The database connection.

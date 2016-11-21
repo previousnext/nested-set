@@ -6,14 +6,14 @@ use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Schema;
 use PNX\Tree\Leaf;
-use PNX\Tree\Storage\DbalTree;
+use PNX\Tree\Storage\DbalNestedSet;
 
 /**
  * Tests the Dbal Tree implementation.
  *
  * @group tree
  */
-class DbalTreeTest extends \PHPUnit_Framework_TestCase {
+class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
 
   /**
    * The database connection.
@@ -40,7 +40,7 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
    */
   public function testFindDescendants() {
 
-    $nestedSet = new DbalTree($this->connection);
+    $nestedSet = new DbalNestedSet($this->connection);
 
     $leaf = $nestedSet->getLeaf(7, 1);
 
@@ -71,7 +71,7 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
    */
   public function testFindDescendantsWithDepth() {
 
-    $nestedSet = new DbalTree($this->connection);
+    $nestedSet = new DbalNestedSet($this->connection);
 
     $leaf = $nestedSet->getLeaf(3, 1);
 
@@ -113,7 +113,7 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
    * Tests finding ancestors.
    */
   public function testFindAncestors() {
-    $tree = new DbalTree($this->connection);
+    $tree = new DbalNestedSet($this->connection);
 
     $leaf = $tree->getLeaf(7, 1);
 
@@ -141,7 +141,7 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
    * Tests adding a leaf.
    */
   public function testAddLeaf() {
-    $nestedSet = new DbalTree($this->connection);
+    $nestedSet = new DbalNestedSet($this->connection);
 
     $parent = $nestedSet->getLeaf(3, 1);
     $child = new Leaf(12, 1);
