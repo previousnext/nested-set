@@ -35,24 +35,34 @@ class DbalNestedSet implements NestedSetInterface {
 
     $this->connection->beginTransaction();
 
-    // Find right most child.
-    /** @var Leaf $rightChild */
-    $rightChild = $this->findRightMostChild($parent);
+    if ($parent->getRight() - $parent->getLeft() === 1) {
+      // We are on a leaf node.
+      $right = $parent->getLeft();
+      $depth = $parent->getDepth() + 1;
+    }
+    else {
+      // Find right most child.
+      /** @var Leaf $rightChild */
+      $rightChild = $this->findRightMostChild($parent);
+      $right = $rightChild->getRight();
+      $depth = $rightChild->getDepth();
+    }
 
     // Move everything across two places.
     $this->connection->executeUpdate('UPDATE tree SET nested_right = nested_right + 2 WHERE nested_right > ?',
-      [$rightChild->getRight()]
+      [$right]
     );
     $this->connection->executeUpdate('UPDATE tree SET nested_left = nested_left + 2  WHERE nested_left > ?',
-      [$rightChild->getRight()]
+      [$right]
     );
 
+    // Create a new leaf object to be returned.
     $newLeaf = new Leaf(
       $child->getId(),
       $child->getRevisionId(),
-      $rightChild->getRight() + 1,
-      $rightChild->getRight() + 2,
-      $rightChild->getDepth()
+      $right + 1,
+      $right + 2,
+      $depth
     );
 
     // Insert the new leaf.
@@ -126,14 +136,9 @@ class DbalNestedSet implements NestedSetInterface {
    */
   public function findAncestors(Leaf $leaf) {
     $ancestors = [];
-    $query = $this->connection->createQueryBuilder();
-    $query->select('id', 'revision_id', 'nested_left', 'nested_right', 'depth')
-      ->from('tree', 't')
-      ->where('nested_left < :nested_left')
-      ->andWhere('nested_right > :nested_right')
-      ->setParameter(':nested_left', $leaf->getLeft())
-      ->setParameter(':nested_right', $leaf->getRight());
-    $stmt = $query->execute();
+    $stmt = $this->connection->executeQuery('SELECT parent.id, parent.revision_id, parent.nested_left, parent.nested_right, parent.depth FROM tree AS child, tree AS parent WHERE child.nested_left BETWEEN parent.nested_left AND parent.nested_right AND child.id = ? AND child.revision_id = ? ORDER BY parent.nested_left',
+      [$leaf->getId(), $leaf->getRevisionId()]
+    );
     while ($row = $stmt->fetch()) {
       $ancestors[] = new Leaf($row['id'], $row['revision_id'], $row['nested_left'], $row['nested_right'], $row['depth']);
     }

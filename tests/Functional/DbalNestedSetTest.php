@@ -113,11 +113,13 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Tests finding ancestors.
    */
   public function testFindAncestors() {
-    $tree = new DbalNestedSet($this->connection);
+    $nestedSet = new DbalNestedSet($this->connection);
 
-    $leaf = $tree->getLeaf(7, 1);
+    $leaf = $nestedSet->getLeaf(7, 1);
 
-    $ancestors = $tree->findAncestors($leaf);
+    $ancestors = $nestedSet->findAncestors($leaf);
+
+    $this->assertCount(3, $ancestors);
 
     /* @var Leaf $parent */
     $parent = $ancestors[1];
@@ -140,7 +142,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   /**
    * Tests adding a leaf.
    */
-  public function testAddLeaf() {
+  public function testAddLeafWithExistingChildren() {
     $nestedSet = new DbalNestedSet($this->connection);
 
     $parent = $nestedSet->getLeaf(3, 1);
@@ -158,6 +160,30 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $newParent = $nestedSet->getLeaf(3, 1);
     $this->assertEquals(10, $newParent->getLeft());
     $this->assertEquals(23, $newParent->getRight());
+  }
+
+  /**
+   * Tests adding a leaf.
+   */
+  public function testAddLeafWithNoChildren() {
+    $nestedSet = new DbalNestedSet($this->connection);
+
+    $parent = $nestedSet->getLeaf(6, 1);
+    $child = new Leaf(13, 1);
+
+    $newLeaf = $nestedSet->addLeaf($parent, $child);
+
+    // Should be inserted below 6 with depth 4.
+    $this->assertEquals(7, $newLeaf->getLeft());
+    $this->assertEquals(8, $newLeaf->getRight());
+    $this->assertEquals(4, $newLeaf->getDepth());
+
+    $tree = $nestedSet->getTree();
+
+    // Parent leaf right should have incremented.
+    $newParent = $nestedSet->getLeaf(6, 1);
+    $this->assertEquals(6, $newParent->getLeft());
+    $this->assertEquals(9, $newParent->getRight());
   }
 
   /**
