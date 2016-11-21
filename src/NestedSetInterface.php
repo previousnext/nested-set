@@ -21,6 +21,14 @@ interface NestedSetInterface {
   public function addLeaf(Leaf $parent, Leaf $child);
 
   /**
+   * Deletes a leaf and all it's descendants.
+   *
+   * @param \PNX\Tree\Leaf $leaf
+   *   The leaf to delete.
+   */
+  public function deleteLeafAndDescendants(Leaf $leaf);
+
+  /**
    * Finds all descendants of a leaf.
    *
    * @param \PNX\Tree\Leaf $leaf
@@ -43,17 +51,6 @@ interface NestedSetInterface {
    *   The ancestors.
    */
   public function findAncestors(Leaf $leaf);
-
-  /**
-   * Gets the parent of this leaf.
-   *
-   * @param \PNX\Tree\Leaf $leaf
-   *   The current leaf.
-   *
-   * @return \PNX\Tree\Leaf
-   *   The parent leaf.
-   */
-  public function getParent(Leaf $leaf);
 
   /**
    * Gets a leaf with for the ID and Revision ID.

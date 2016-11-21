@@ -3,6 +3,7 @@
 namespace PNX\Tree\Storage;
 
 use Doctrine\DBAL\Connection;
+use Exception;
 use PNX\Tree\Leaf;
 use PNX\Tree\NestedSetInterface;
 
@@ -152,14 +153,44 @@ class DbalNestedSet implements NestedSetInterface {
    *   The tree.
    */
   public function getTree() {
-    return $this->connection->fetchAll('SELECT id, revision_id, nested_left, nested_right, depth FROM tree');
+    $tree = [];
+    $stmt = $this->connection->executeQuery('SELECT id, revision_id, nested_left, nested_right, depth FROM tree ORDER BY nested_left');
+    while ($row = $stmt->fetch()) {
+      $tree[] = new Leaf($row['id'], $row['revision_id'], $row['nested_left'], $row['nested_right'], $row['depth']);
+    }
+    return $tree;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getParent(Leaf $leaf) {
-    return NULL;
+  public function deleteLeafAndDescendants(Leaf $leaf) {
+    $left = $leaf->getLeft();
+    $right = $leaf->getRight();
+    $width = $right - $left + 1;
+
+    try {
+      $this->connection->beginTransaction();
+
+      $this->connection->executeUpdate('DELETE from tree WHERE nested_left BETWEEN ? AND ?',
+        [$left, $right]
+      );
+
+      // Move everything back two places.
+      $this->connection->executeUpdate('UPDATE tree SET nested_right = nested_right - ? WHERE nested_right > ?',
+        [$width, $right]
+      );
+      $this->connection->executeUpdate('UPDATE tree SET nested_left = nested_left - ?  WHERE nested_left > ?',
+        [$width, $right]
+      );
+
+      $this->connection->commit();
+    }
+    catch (Exception $e) {
+      $this->connection->rollBack();
+      throw $e;
+    }
+
   }
 
 }

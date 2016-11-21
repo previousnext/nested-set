@@ -2,6 +2,7 @@
 
 namespace PNX\Tree\Tests\Functional;
 
+use Console_Table;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Schema;
@@ -14,6 +15,13 @@ use PNX\Tree\Storage\DbalNestedSet;
  * @group tree
  */
 class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
+
+  /**
+   * The nested set under test.
+   *
+   * @var DbalNestedSet
+   */
+  protected $nestedSet;
 
   /**
    * The database connection.
@@ -32,6 +40,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
       ], new Configuration());
       $this->createTable();
       $this->loadTestData();
+      $this->nestedSet = new DbalNestedSet($this->connection);
     }
   }
 
@@ -40,11 +49,9 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    */
   public function testFindDescendants() {
 
-    $nestedSet = new DbalNestedSet($this->connection);
+    $leaf = $this->nestedSet->getLeaf(7, 1);
 
-    $leaf = $nestedSet->getLeaf(7, 1);
-
-    $descendants = $nestedSet->findDescendants($leaf);
+    $descendants = $this->nestedSet->findDescendants($leaf);
 
     $this->assertCount(2, $descendants);
 
@@ -71,12 +78,10 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    */
   public function testFindDescendantsWithDepth() {
 
-    $nestedSet = new DbalNestedSet($this->connection);
-
-    $leaf = $nestedSet->getLeaf(3, 1);
+    $leaf = $this->nestedSet->getLeaf(3, 1);
 
     // Limit to 1 level deep to exclude grandchildren.
-    $descendants = $nestedSet->findDescendants($leaf, 1);
+    $descendants = $this->nestedSet->findDescendants($leaf, 1);
 
     $this->assertCount(3, $descendants);
 
@@ -113,11 +118,10 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Tests finding ancestors.
    */
   public function testFindAncestors() {
-    $nestedSet = new DbalNestedSet($this->connection);
 
-    $leaf = $nestedSet->getLeaf(7, 1);
+    $leaf = $this->nestedSet->getLeaf(7, 1);
 
-    $ancestors = $nestedSet->findAncestors($leaf);
+    $ancestors = $this->nestedSet->findAncestors($leaf);
 
     $this->assertCount(3, $ancestors);
 
@@ -143,21 +147,20 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Tests adding a leaf.
    */
   public function testAddLeafWithExistingChildren() {
-    $nestedSet = new DbalNestedSet($this->connection);
 
-    $parent = $nestedSet->getLeaf(3, 1);
+    $parent = $this->nestedSet->getLeaf(3, 1);
     $child = new Leaf(12, 1);
 
-    $newLeaf = $nestedSet->addLeaf($parent, $child);
+    $newLeaf = $this->nestedSet->addLeaf($parent, $child);
 
     // Should be inserted in right-most spot.
     $this->assertEquals(21, $newLeaf->getLeft());
     $this->assertEquals(22, $newLeaf->getRight());
 
-    $tree = $nestedSet->getTree();
+    $tree = $this->nestedSet->getTree();
 
     // Parent leaf right should have incremented.
-    $newParent = $nestedSet->getLeaf(3, 1);
+    $newParent = $this->nestedSet->getLeaf(3, 1);
     $this->assertEquals(10, $newParent->getLeft());
     $this->assertEquals(23, $newParent->getRight());
   }
@@ -166,24 +169,37 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Tests adding a leaf.
    */
   public function testAddLeafWithNoChildren() {
-    $nestedSet = new DbalNestedSet($this->connection);
 
-    $parent = $nestedSet->getLeaf(6, 1);
+    $parent = $this->nestedSet->getLeaf(6, 1);
     $child = new Leaf(13, 1);
 
-    $newLeaf = $nestedSet->addLeaf($parent, $child);
+    $newLeaf = $this->nestedSet->addLeaf($parent, $child);
 
     // Should be inserted below 6 with depth 4.
     $this->assertEquals(7, $newLeaf->getLeft());
     $this->assertEquals(8, $newLeaf->getRight());
     $this->assertEquals(4, $newLeaf->getDepth());
 
-    $tree = $nestedSet->getTree();
+    $tree = $this->nestedSet->getTree();
+    $this->printTree($tree);
 
     // Parent leaf right should have incremented.
-    $newParent = $nestedSet->getLeaf(6, 1);
+    $newParent = $this->nestedSet->getLeaf(6, 1);
     $this->assertEquals(6, $newParent->getLeft());
     $this->assertEquals(9, $newParent->getRight());
+  }
+
+  /**
+   * Tests deleting a leaf and its descendants.
+   */
+  public function testDeleteNodeAndDescendants() {
+
+    $leaf = $this->nestedSet->getLeaf(4, 1);
+
+    $this->nestedSet->deleteLeafAndDescendants($leaf);
+
+    $tree = $this->nestedSet->getTree();
+    $this->printTree($tree);
   }
 
   /**
@@ -296,6 +312,30 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
         'depth' => 3,
       ]
     );
+  }
+
+  /**
+   * Prints out a tree.
+   *
+   * @param array $tree
+   *   The tree to print.
+   */
+  protected function printTree($tree) {
+    $table = new Console_Table(CONSOLE_TABLE_ALIGN_RIGHT);
+    $table->setHeaders(['ID', 'Rev', 'Left', 'Right', 'Depth']);
+    $table->setAlign(0, CONSOLE_TABLE_ALIGN_LEFT);
+    /** @var Leaf $leaf */
+    foreach ($tree as $leaf) {
+      $indent = str_repeat('-', $leaf->getDepth());
+      $table->addRow([
+        $indent . $leaf->getId(),
+        $leaf->getRevisionId(),
+        $leaf->getLeft(),
+        $leaf->getRight(),
+        $leaf->getDepth(),
+      ]);
+    }
+    echo $table->getTable();
   }
 
 }
