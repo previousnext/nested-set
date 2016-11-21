@@ -3,6 +3,7 @@
 namespace PNX\Tree\Storage;
 
 use Doctrine\DBAL\Connection;
+use PDO;
 use PNX\Tree\Leaf;
 use PNX\Tree\TreeInterface;
 
@@ -32,32 +33,47 @@ class DbalTree implements TreeInterface {
    * {@inheritdoc}
    */
   public function addLeaf(Leaf $parent, Leaf $child) {
+
+    $this->connection->beginTransaction();
+
     // Find right most child.
     /** @var Leaf $rightChild */
     $rightChild = $this->findRightMostChild($parent);
 
     // Move everything across two places.
     $query = $this->connection->createQueryBuilder();
-    $query->update('tree', 't')
-      ->set('t.nested_right', $rightChild->getRight() + 2)
-      ->where('t.nested_right > :nested_right')
-      ->setParameter(':nested_right', $rightChild->getRight())
+    $query->update('tree')
+      ->set('nested_right', $rightChild->getRight() + 2)
+      ->where('nested_right > ?')
+      ->setParameter(0, $rightChild->getRight(), PDO::PARAM_INT)
       ->execute();
 
     $query = $this->connection->createQueryBuilder();
-    $query->update('tree', 't')
-      ->set('t.nested_left', $rightChild->getRight() + 2)
-      ->where('t.nested_left > :nested_right')
-      ->setParameter(':nested_right', $rightChild->getRight())
+    $query->update('tree')
+      ->set('nested_left', $rightChild->getRight() + 2)
+      ->where('nested_left > ?')
+      ->setParameter(0, $rightChild->getRight(), PDO::PARAM_INT)
       ->execute();
+
+    $newLeaf = new Leaf(
+      $child->getId(),
+      $child->getRevisionId(),
+      $rightChild->getRight() + 1,
+      $rightChild->getRight() + 2
+    );
 
     // Insert the new leaf.
     $this->connection->insert('tree', [
-      'id' => $child->getId(),
-      'revision_id' => $child->getRevisionId(),
-      'nested_left' => $rightChild->getRight() + 1,
-      'nested_right' => $rightChild->getRight() + 2,
+      'id' => $newLeaf->getId(),
+      'revision_id' => $newLeaf->getRevisionId(),
+      'nested_left' => $newLeaf->getLeft(),
+      'nested_right' => $newLeaf->getRight(),
     ]);
+
+    $this->connection->commit();
+
+    return $newLeaf;
+
   }
 
   /**

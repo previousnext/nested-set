@@ -14,6 +14,9 @@ interface TreeInterface {
    *   The parent.
    * @param \PNX\Tree\Leaf $child
    *   The child.
+   *
+   * @return \PNX\Tree\Leaf
+   *   Returns a new child leaf with left and right.
    */
   public function addLeaf(Leaf $parent, Leaf $child);
 

@@ -103,12 +103,16 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
     $parent = $tree->getLeaf(3, 1);
     $child = new Leaf(11, 1);
 
-    $tree->addLeaf($parent, $child);
+    $newLeaf = $tree->addLeaf($parent, $child);
 
-    $root = $tree->getLeaf(1, 1);
+    // Should be inserted in right-most spot.
+    $this->assertEquals(21, $newLeaf->getLeft());
+    $this->assertEquals(22, $newLeaf->getRight());
 
-    $descendants = $tree->findDescendants($root);
-
+    // Parent leaf right should have incremented.
+    $newParent = $tree->getLeaf(3, 1);
+    $this->assertEquals(10, $newParent->getLeft());
+    $this->assertEquals(23, $newParent->getRight());
   }
 
   /**
