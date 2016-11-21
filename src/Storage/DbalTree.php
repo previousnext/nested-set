@@ -3,7 +3,6 @@
 namespace PNX\Tree\Storage;
 
 use Doctrine\DBAL\Connection;
-use PDO;
 use PNX\Tree\Leaf;
 use PNX\Tree\TreeInterface;
 
@@ -41,25 +40,19 @@ class DbalTree implements TreeInterface {
     $rightChild = $this->findRightMostChild($parent);
 
     // Move everything across two places.
-    $query = $this->connection->createQueryBuilder();
-    $query->update('tree')
-      ->set('nested_right', $rightChild->getRight() + 2)
-      ->where('nested_right > ?')
-      ->setParameter(0, $rightChild->getRight(), PDO::PARAM_INT)
-      ->execute();
-
-    $query = $this->connection->createQueryBuilder();
-    $query->update('tree')
-      ->set('nested_left', $rightChild->getRight() + 2)
-      ->where('nested_left > ?')
-      ->setParameter(0, $rightChild->getRight(), PDO::PARAM_INT)
-      ->execute();
+    $this->connection->executeUpdate('UPDATE tree SET nested_right = nested_right + 2 WHERE nested_right > ?',
+      [$rightChild->getRight()]
+    );
+    $this->connection->executeUpdate('UPDATE tree SET nested_left = nested_left + 2  WHERE nested_left > ?',
+      [$rightChild->getRight()]
+    );
 
     $newLeaf = new Leaf(
       $child->getId(),
       $child->getRevisionId(),
       $rightChild->getRight() + 1,
-      $rightChild->getRight() + 2
+      $rightChild->getRight() + 2,
+      $rightChild->getDepth()
     );
 
     // Insert the new leaf.
@@ -68,6 +61,7 @@ class DbalTree implements TreeInterface {
       'revision_id' => $newLeaf->getRevisionId(),
       'nested_left' => $newLeaf->getLeft(),
       'nested_right' => $newLeaf->getRight(),
+      'depth' => $newLeaf->getDepth(),
     ]);
 
     $this->connection->commit();
@@ -86,26 +80,33 @@ class DbalTree implements TreeInterface {
    *   The right-most child leaf.
    */
   protected function findRightMostChild(Leaf $parent) {
-    $result = $this->connection->fetchAssoc('SELECT t.id, t.revision_id, t.nested_left, t.nested_right FROM tree t WHERE t.nested_right = ? - 1',
+    $result = $this->connection->fetchAssoc('SELECT id, revision_id, nested_left, nested_right, depth FROM tree WHERE nested_right = ? - 1',
       [$parent->getRight()]);
-    return new Leaf($result['id'], $result['revision_id'], $result['nested_left'], $result['nested_right']);
+    return new Leaf($result['id'], $result['revision_id'], $result['nested_left'], $result['nested_right'], $result['depth']);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function findDescendants(Leaf $leaf) {
+  public function findDescendants(Leaf $leaf, $depth = 0) {
     $descendants = [];
     $query = $this->connection->createQueryBuilder();
-    $query->select('t.id', 't.revision_id', 't.nested_left', 't.nested_right')
-      ->from('tree', 't')
-      ->where('t.nested_left > :nested_left')
-      ->andWhere('t.nested_right < :nested_right')
-      ->setParameter(':nested_left', $leaf->getLeft())
-      ->setParameter(':nested_right', $leaf->getRight());
+    $query->select('child.id', 'child.revision_id', 'child.nested_left', 'child.nested_right', 'child.depth')
+      ->from('tree', 'child')
+      ->from('tree', 'parent')
+      ->where('child.nested_left > parent.nested_left')
+      ->andWhere('child.nested_right < parent.nested_right')
+      ->andWhere('parent.id = :id')
+      ->andWhere('parent.revision_id = :revision_id')
+      ->setParameter(':id', $leaf->getId())
+      ->setParameter(':revision_id', $leaf->getRevisionId());
+    if ($depth > 0) {
+      $query->andWhere('child.depth <= parent.depth + :depth')
+        ->setParameter(':depth', $depth);
+    }
     $stmt = $query->execute();
     while ($row = $stmt->fetch()) {
-      $descendants[] = new Leaf($row['id'], $row['revision_id'], $row['nested_left'], $row['nested_right']);
+      $descendants[] = new Leaf($row['id'], $row['revision_id'], $row['nested_left'], $row['nested_right'], $row['depth']);
     }
     return $descendants;
   }
@@ -114,10 +115,10 @@ class DbalTree implements TreeInterface {
    * {@inheritdoc}
    */
   public function getLeaf($id, $revision_id) {
-    $result = $this->connection->fetchAssoc("SELECT id, revision_id, nested_left, nested_right FROM tree WHERE id = ? AND revision_id = ?",
+    $result = $this->connection->fetchAssoc("SELECT id, revision_id, nested_left, nested_right, depth FROM tree WHERE id = ? AND revision_id = ?",
       [$id, $revision_id]
     );
-    return new Leaf($id, $revision_id, $result['nested_left'], $result['nested_right']);
+    return new Leaf($id, $revision_id, $result['nested_left'], $result['nested_right'], $result['depth']);
   }
 
   /**
@@ -126,17 +127,27 @@ class DbalTree implements TreeInterface {
   public function findAncestors(Leaf $leaf) {
     $ancestors = [];
     $query = $this->connection->createQueryBuilder();
-    $query->select('t.id', 't.revision_id', 't.nested_left', 't.nested_right')
+    $query->select('id', 'revision_id', 'nested_left', 'nested_right', 'depth')
       ->from('tree', 't')
-      ->where('t.nested_left < :nested_left')
-      ->andWhere('t.nested_right > :nested_right')
+      ->where('nested_left < :nested_left')
+      ->andWhere('nested_right > :nested_right')
       ->setParameter(':nested_left', $leaf->getLeft())
       ->setParameter(':nested_right', $leaf->getRight());
     $stmt = $query->execute();
     while ($row = $stmt->fetch()) {
-      $ancestors[] = new Leaf($row['id'], $row['revision_id'], $row['nested_left'], $row['nested_right']);
+      $ancestors[] = new Leaf($row['id'], $row['revision_id'], $row['nested_left'], $row['nested_right'], $row['depth']);
     }
     return $ancestors;
+  }
+
+  /**
+   * Fetches the entire tree.
+   *
+   * @return array
+   *   The tree.
+   */
+  public function getTree() {
+    return $this->connection->fetchAll('SELECT id, revision_id, nested_left, nested_right, depth FROM tree');
   }
 
   /**

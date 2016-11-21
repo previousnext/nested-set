@@ -25,11 +25,13 @@ interface TreeInterface {
    *
    * @param \PNX\Tree\Leaf $leaf
    *   The leaf.
+   * @param int $depth
+   *   (optional) A depth limit. Defaults to 0, no limit.
    *
    * @return array
    *   The nested array of descendants.
    */
-  public function findDescendants(Leaf $leaf);
+  public function findDescendants(Leaf $leaf, $depth = 0);
 
   /**
    * Finds all ancestors of a leaf.

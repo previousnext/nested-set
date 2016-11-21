@@ -38,13 +38,13 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
   /**
    * Tests finding descendants.
    */
-  public function testFindDescendents() {
+  public function testFindDescendants() {
 
-    $tree = new DbalTree($this->connection);
+    $nestedSet = new DbalTree($this->connection);
 
-    $leaf = $tree->getLeaf(7, 1);
+    $leaf = $nestedSet->getLeaf(7, 1);
 
-    $descendants = $tree->findDescendants($leaf);
+    $descendants = $nestedSet->findDescendants($leaf);
 
     $this->assertCount(2, $descendants);
 
@@ -63,6 +63,49 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(1, $child2->getRevisionId());
     $this->assertEquals(14, $child2->getLeft());
     $this->assertEquals(15, $child2->getRight());
+
+  }
+
+  /**
+   * Tests finding descendants with depth.
+   */
+  public function testFindDescendantsWithDepth() {
+
+    $nestedSet = new DbalTree($this->connection);
+
+    $leaf = $nestedSet->getLeaf(3, 1);
+
+    // Limit to 1 level deep to exclude grandchildren.
+    $descendants = $nestedSet->findDescendants($leaf, 1);
+
+    $this->assertCount(3, $descendants);
+
+    /** @var Leaf $child1 */
+    $child1 = $descendants[0];
+
+    $this->assertEquals(7, $child1->getId());
+    $this->assertEquals(1, $child1->getRevisionId());
+    $this->assertEquals(11, $child1->getLeft());
+    $this->assertEquals(16, $child1->getRight());
+    $this->assertEquals(2, $child1->getDepth());
+
+    /** @var Leaf $child2 */
+    $child2 = $descendants[1];
+
+    $this->assertEquals(8, $child2->getId());
+    $this->assertEquals(1, $child2->getRevisionId());
+    $this->assertEquals(17, $child2->getLeft());
+    $this->assertEquals(18, $child2->getRight());
+    $this->assertEquals(2, $child2->getDepth());
+
+    /** @var Leaf $child3 */
+    $child3 = $descendants[2];
+
+    $this->assertEquals(9, $child3->getId());
+    $this->assertEquals(1, $child3->getRevisionId());
+    $this->assertEquals(19, $child3->getLeft());
+    $this->assertEquals(20, $child3->getRight());
+    $this->assertEquals(2, $child3->getDepth());
 
   }
 
@@ -98,19 +141,21 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
    * Tests adding a leaf.
    */
   public function testAddLeaf() {
-    $tree = new DbalTree($this->connection);
+    $nestedSet = new DbalTree($this->connection);
 
-    $parent = $tree->getLeaf(3, 1);
-    $child = new Leaf(11, 1);
+    $parent = $nestedSet->getLeaf(3, 1);
+    $child = new Leaf(12, 1);
 
-    $newLeaf = $tree->addLeaf($parent, $child);
+    $newLeaf = $nestedSet->addLeaf($parent, $child);
 
     // Should be inserted in right-most spot.
     $this->assertEquals(21, $newLeaf->getLeft());
     $this->assertEquals(22, $newLeaf->getRight());
 
+    $tree = $nestedSet->getTree();
+
     // Parent leaf right should have incremented.
-    $newParent = $tree->getLeaf(3, 1);
+    $newParent = $nestedSet->getLeaf(3, 1);
     $this->assertEquals(10, $newParent->getLeft());
     $this->assertEquals(23, $newParent->getRight());
   }
@@ -125,6 +170,7 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
     $tree->addColumn("revision_id", "integer", ["unsigned" => TRUE]);
     $tree->addColumn("nested_left", "integer", ["unsigned" => TRUE]);
     $tree->addColumn("nested_right", "integer", ["unsigned" => TRUE]);
+    $tree->addColumn("depth", "integer", ["unsigned" => TRUE]);
 
     foreach ($schema->toSql($this->connection->getDatabasePlatform()) as $sql) {
       $this->connection->exec($sql);
@@ -141,13 +187,15 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
         'revision_id' => 1,
         'nested_left' => 1,
         'nested_right' => 22,
+        'depth' => 0,
       ]);
     $this->connection->insert('tree',
       [
         'id' => 2,
         'revision_id' => 1,
-        'nested_left' => 1,
+        'nested_left' => 2,
         'nested_right' => 9,
+        'depth' => 1,
       ]);
     $this->connection->insert('tree',
       [
@@ -155,6 +203,7 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
         'revision_id' => 1,
         'nested_left' => 10,
         'nested_right' => 21,
+        'depth' => 1,
       ]);
     $this->connection->insert('tree',
       [
@@ -162,6 +211,7 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
         'revision_id' => 1,
         'nested_left' => 3,
         'nested_right' => 8,
+        'depth' => 2,
       ]);
     $this->connection->insert('tree',
       [
@@ -169,6 +219,7 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
         'revision_id' => 1,
         'nested_left' => 4,
         'nested_right' => 5,
+        'depth' => 3,
       ]);
     $this->connection->insert('tree',
       [
@@ -176,6 +227,7 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
         'revision_id' => 1,
         'nested_left' => 6,
         'nested_right' => 7,
+        'depth' => 3,
       ]);
     $this->connection->insert('tree',
       [
@@ -183,6 +235,7 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
         'revision_id' => 1,
         'nested_left' => 11,
         'nested_right' => 16,
+        'depth' => 2,
       ]);
     $this->connection->insert('tree',
       [
@@ -190,6 +243,7 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
         'revision_id' => 1,
         'nested_left' => 17,
         'nested_right' => 18,
+        'depth' => 2,
       ]);
     $this->connection->insert('tree',
       [
@@ -197,6 +251,7 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
         'revision_id' => 1,
         'nested_left' => 19,
         'nested_right' => 20,
+        'depth' => 2,
       ]);
     $this->connection->insert('tree',
       [
@@ -204,6 +259,7 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
         'revision_id' => 1,
         'nested_left' => 12,
         'nested_right' => 13,
+        'depth' => 3,
       ]);
     $this->connection->insert('tree',
       [
@@ -211,6 +267,7 @@ class DbalTreeTest extends \PHPUnit_Framework_TestCase {
         'revision_id' => 1,
         'nested_left' => 14,
         'nested_right' => 15,
+        'depth' => 3,
       ]
     );
   }
