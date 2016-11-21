@@ -9,7 +9,7 @@ dependencies:
     - vendor
     - bin
   pre:
-    - echo "date.timezone = Australia/Sydney" > ~/.phpenv/versions/$(phpenv global)/etc/conf.d/timezone.ini
+    - echo "date.timezone = Australia/Sydney" > /opt/circleci/php/$(phpenv global)/etc/conf.d/timezone.ini
     - make init
 
 test:
