@@ -216,7 +216,7 @@ class DbalNestedSet implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function deleteLeafAndDescendants(Leaf $leaf) {
+  public function deleteSubTree(Leaf $leaf) {
     $left = $leaf->getLeft();
     $right = $leaf->getRight();
     $width = $right - $left + 1;
@@ -244,6 +244,13 @@ class DbalNestedSet implements NestedSetInterface {
       throw $e;
     }
 
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function moveSubTree(Leaf $parent, Leaf $leaf) {
+    // TODO: Implement moveSubTree() method.
   }
 
 }

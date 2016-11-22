@@ -34,7 +34,7 @@ interface NestedSetInterface {
    * @param \PNX\Tree\Leaf $leaf
    *   The leaf to delete.
    */
-  public function deleteLeafAndDescendants(Leaf $leaf);
+  public function deleteSubTree(Leaf $leaf);
 
   /**
    * Finds all descendants of a leaf.
@@ -72,5 +72,15 @@ interface NestedSetInterface {
    *   The leaf.
    */
   public function getLeaf($id, $revision_id);
+
+  /**
+   * Moves a Leaf and its sub-tree under a new parent leaf.
+   *
+   * @param \PNX\Tree\Leaf $parent
+   *   The parent leaf to move under.
+   * @param \PNX\Tree\Leaf $leaf
+   *   The leaf to move.
+   */
+  public function moveSubTree(Leaf $parent, Leaf $leaf);
 
 }

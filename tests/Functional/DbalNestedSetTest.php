@@ -220,7 +220,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
 
     $leaf = $this->nestedSet->getLeaf(4, 1);
 
-    $this->nestedSet->deleteLeafAndDescendants($leaf);
+    $this->nestedSet->deleteSubTree($leaf);
 
     // Leaf should be deleted.
     $leaf = $this->nestedSet->getLeaf(4, 1);
