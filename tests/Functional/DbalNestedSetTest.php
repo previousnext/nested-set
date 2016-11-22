@@ -180,9 +180,6 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(8, $newLeaf->getRight());
     $this->assertEquals(4, $newLeaf->getDepth());
 
-    $tree = $this->nestedSet->getTree();
-    $this->printTree($tree);
-
     // Parent leaf right should have incremented.
     $newParent = $this->nestedSet->getLeaf(6, 1);
     $this->assertEquals(6, $newParent->getLeft());
@@ -190,16 +187,51 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
+   * Tests deleting a leaf.
+   */
+  public function testDeleteLeaf() {
+    $leaf = $this->nestedSet->getLeaf(4, 1);
+
+    $this->nestedSet->deleteLeaf($leaf);
+
+    // Leaf should be deleted.
+    $leaf = $this->nestedSet->getLeaf(4, 1);
+    $this->assertNull($leaf);
+
+    // Children should be moved up.
+    $leaf = $this->nestedSet->getLeaf(5, 1);
+    $this->assertEquals(3, $leaf->getLeft());
+    $this->assertEquals(4, $leaf->getRight());
+    $this->assertEquals(2, $leaf->getDepth());
+
+    $leaf = $this->nestedSet->getLeaf(6, 1);
+    $this->assertEquals(5, $leaf->getLeft());
+    $this->assertEquals(6, $leaf->getRight());
+    $this->assertEquals(2, $leaf->getDepth());
+
+    $tree = $this->nestedSet->getTree();
+    $this->printTree($tree);
+  }
+
+  /**
    * Tests deleting a leaf and its descendants.
    */
-  public function testDeleteNodeAndDescendants() {
+  public function testDeleteLeafAndDescendants() {
 
     $leaf = $this->nestedSet->getLeaf(4, 1);
 
     $this->nestedSet->deleteLeafAndDescendants($leaf);
 
-    $tree = $this->nestedSet->getTree();
-    $this->printTree($tree);
+    // Leaf should be deleted.
+    $leaf = $this->nestedSet->getLeaf(4, 1);
+    $this->assertNull($leaf);
+
+    // Children should be deleted.
+    $leaf = $this->nestedSet->getLeaf(5, 1);
+    $this->assertNull($leaf);
+
+    $leaf = $this->nestedSet->getLeaf(6, 1);
+    $this->assertNull($leaf);
   }
 
   /**

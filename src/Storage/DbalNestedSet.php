@@ -34,49 +34,54 @@ class DbalNestedSet implements NestedSetInterface {
    */
   public function addLeaf(Leaf $parent, Leaf $child) {
 
-    $this->connection->beginTransaction();
+    try {
+      $this->connection->beginTransaction();
 
-    if ($parent->getRight() - $parent->getLeft() === 1) {
-      // We are on a leaf node.
-      $right = $parent->getLeft();
-      $depth = $parent->getDepth() + 1;
+      if ($parent->getRight() - $parent->getLeft() === 1) {
+        // We are on a leaf node.
+        $right = $parent->getLeft();
+        $depth = $parent->getDepth() + 1;
+      }
+      else {
+        // Find right most child.
+        /** @var Leaf $rightChild */
+        $rightChild = $this->findRightMostChild($parent);
+        $right = $rightChild->getRight();
+        $depth = $rightChild->getDepth();
+      }
+
+      // Move everything across two places.
+      $this->connection->executeUpdate('UPDATE tree SET nested_right = nested_right + 2 WHERE nested_right > ?',
+        [$right]
+      );
+      $this->connection->executeUpdate('UPDATE tree SET nested_left = nested_left + 2  WHERE nested_left > ?',
+        [$right]
+      );
+
+      // Create a new leaf object to be returned.
+      $newLeaf = new Leaf(
+        $child->getId(),
+        $child->getRevisionId(),
+        $right + 1,
+        $right + 2,
+        $depth
+      );
+
+      // Insert the new leaf.
+      $this->connection->insert('tree', [
+        'id' => $newLeaf->getId(),
+        'revision_id' => $newLeaf->getRevisionId(),
+        'nested_left' => $newLeaf->getLeft(),
+        'nested_right' => $newLeaf->getRight(),
+        'depth' => $newLeaf->getDepth(),
+      ]);
+
+      $this->connection->commit();
     }
-    else {
-      // Find right most child.
-      /** @var Leaf $rightChild */
-      $rightChild = $this->findRightMostChild($parent);
-      $right = $rightChild->getRight();
-      $depth = $rightChild->getDepth();
+    catch (Exception $e) {
+      $this->connection->rollBack();
+      throw $e;
     }
-
-    // Move everything across two places.
-    $this->connection->executeUpdate('UPDATE tree SET nested_right = nested_right + 2 WHERE nested_right > ?',
-      [$right]
-    );
-    $this->connection->executeUpdate('UPDATE tree SET nested_left = nested_left + 2  WHERE nested_left > ?',
-      [$right]
-    );
-
-    // Create a new leaf object to be returned.
-    $newLeaf = new Leaf(
-      $child->getId(),
-      $child->getRevisionId(),
-      $right + 1,
-      $right + 2,
-      $depth
-    );
-
-    // Insert the new leaf.
-    $this->connection->insert('tree', [
-      'id' => $newLeaf->getId(),
-      'revision_id' => $newLeaf->getRevisionId(),
-      'nested_left' => $newLeaf->getLeft(),
-      'nested_right' => $newLeaf->getRight(),
-      'depth' => $newLeaf->getDepth(),
-    ]);
-
-    $this->connection->commit();
-
     return $newLeaf;
 
   }
@@ -93,7 +98,9 @@ class DbalNestedSet implements NestedSetInterface {
   protected function findRightMostChild(Leaf $parent) {
     $result = $this->connection->fetchAssoc('SELECT id, revision_id, nested_left, nested_right, depth FROM tree WHERE nested_right = ? - 1',
       [$parent->getRight()]);
-    return new Leaf($result['id'], $result['revision_id'], $result['nested_left'], $result['nested_right'], $result['depth']);
+    if ($result) {
+      return new Leaf($result['id'], $result['revision_id'], $result['nested_left'], $result['nested_right'], $result['depth']);
+    }
   }
 
   /**
@@ -129,7 +136,9 @@ class DbalNestedSet implements NestedSetInterface {
     $result = $this->connection->fetchAssoc("SELECT id, revision_id, nested_left, nested_right, depth FROM tree WHERE id = ? AND revision_id = ?",
       [$id, $revision_id]
     );
-    return new Leaf($id, $revision_id, $result['nested_left'], $result['nested_right'], $result['depth']);
+    if ($result) {
+      return new Leaf($id, $revision_id, $result['nested_left'], $result['nested_right'], $result['depth']);
+    }
   }
 
   /**
@@ -164,6 +173,49 @@ class DbalNestedSet implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
+  public function deleteLeaf(Leaf $leaf) {
+    $left = $leaf->getLeft();
+    $right = $leaf->getRight();
+    $width = $right - $left + 1;
+
+    try {
+      $this->connection->setAutoCommit(FALSE);
+      $this->connection->beginTransaction();
+
+      // Delete the leaf.
+      $this->connection->executeUpdate('DELETE from tree WHERE nested_left = ?',
+        [$left]
+      );
+
+      // Move children up a level.
+      $this->connection->executeUpdate('UPDATE tree SET nested_right = nested_right - 1, nested_left = nested_left - 1, depth = depth -1 WHERE nested_left BETWEEN ? AND ?',
+        [$left, $right]
+      );
+
+      // Move everything back two places.
+      $this->connection->executeUpdate('UPDATE tree SET nested_right = nested_right - 2 WHERE nested_right > ?',
+        [$right]
+      );
+      $this->connection->executeUpdate('UPDATE tree SET nested_left = tree.nested_left - 2 WHERE nested_left > ?',
+        [$right]
+      );
+
+      $this->connection->commit();
+
+    }
+    catch (Exception $e) {
+      $this->connection->rollBack();
+      throw $e;
+    }
+    finally {
+      $this->connection->setAutoCommit(TRUE);
+    }
+
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function deleteLeafAndDescendants(Leaf $leaf) {
     $left = $leaf->getLeft();
     $right = $leaf->getRight();
@@ -172,6 +224,7 @@ class DbalNestedSet implements NestedSetInterface {
     try {
       $this->connection->beginTransaction();
 
+      // Delete the leaf.
       $this->connection->executeUpdate('DELETE from tree WHERE nested_left BETWEEN ? AND ?',
         [$left, $right]
       );
