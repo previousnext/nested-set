@@ -50,6 +50,17 @@ interface NestedSetInterface {
   public function findDescendants(Node $node, $depth = 0);
 
   /**
+   * Finds all immediate children of a node.
+   *
+   * @param \PNX\Tree\Node $node
+   *   The node.
+   *
+   * @return array
+   *   The children.
+   */
+  public function findChildren(Node $node);
+
+  /**
    * Finds all ancestors of a node.
    *
    * @param \PNX\Tree\Node $node

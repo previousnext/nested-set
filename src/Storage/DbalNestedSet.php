@@ -121,6 +121,14 @@ class DbalNestedSet implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
+  public function findChildren(Node $node) {
+    // Only find descendants one level deep.
+    return $this->findDescendants($node, 1);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getNode($id, $revision_id) {
     $result = $this->connection->fetchAssoc("SELECT id, revision_id, nested_left, nested_right, depth FROM tree WHERE id = ? AND revision_id = ?",
       [$id, $revision_id]
