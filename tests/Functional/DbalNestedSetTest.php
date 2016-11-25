@@ -167,7 +167,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $parent = $this->nestedSet->getNode(3, 1);
     $child = new Node(12, 1);
 
-    $newNode = $this->nestedSet->insertNodeBelow($parent, $child);
+    $newNode = $this->nestedSet->addNodeBelow($parent, $child);
 
     // Should be inserted in right-most spot.
     $this->assertEquals(21, $newNode->getLeft());
@@ -188,7 +188,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $target = $this->nestedSet->getNode(6, 1);
     $node = new Node(13, 1);
 
-    $newNode = $this->nestedSet->insertNodeBelow($target, $node);
+    $newNode = $this->nestedSet->addNodeBelow($target, $node);
 
     // Should be inserted below 6 with depth 4.
     $this->assertEquals(7, $newNode->getLeft());
@@ -208,7 +208,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $parent = $this->nestedSet->getNode(6, 1);
     $child = new Node(14, 1);
 
-    $newNode = $this->nestedSet->insertNodeBefore($parent, $child);
+    $newNode = $this->nestedSet->addNodeBefore($parent, $child);
 
     // Should be inserted below 6 with depth 4.
     $this->assertEquals(6, $newNode->getLeft());
@@ -228,7 +228,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $parent = $this->nestedSet->getNode(5, 1);
     $child = new Node(15, 1);
 
-    $newNode = $this->nestedSet->insertNodeAfter($parent, $child);
+    $newNode = $this->nestedSet->addNodeAfter($parent, $child);
 
     // Should be inserted below 6 with depth 4.
     $this->assertEquals(6, $newNode->getLeft());
@@ -359,11 +359,56 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
-   * Creates the table.
+   * Tests inserting a root node to an empty tree.
    */
-  protected function createTable() {
+  public function testAddRootNodeWhenEmpty() {
+
+    $rootNode = $this->nestedSet->getNode(1, 1);
+
+    $this->nestedSet->deleteSubTree($rootNode);
+
+    $node = new Node(12, 1);
+
+    $newNode = $this->nestedSet->addRootNode($node);
+
+    $this->assertEquals(1, $newNode->getLeft());
+    $this->assertEquals(2, $newNode->getRight());
+    $this->assertEquals(0, $newNode->getDepth());
+  }
+
+  /**
+   * Tests inserting a root node to an existing tree.
+   */
+  public function testAddRootNode() {
+    $node = new Node(12, 1);
+
+    $newNode = $this->nestedSet->addRootNode($node);
+
+    $this->assertEquals(23, $newNode->getLeft());
+    $this->assertEquals(24, $newNode->getRight());
+    $this->assertEquals(0, $newNode->getDepth());
+  }
+
+  /**
+   * Drops the table.
+   */
+  protected function dropTable() {
     $schema = new Schema();
-    $tree = $schema->createTable("tree");
+    $schema->dropTable("tree");
+    foreach ($schema->toSql($this->connection->getDatabasePlatform()) as $sql) {
+      $this->connection->exec($sql);
+    }
+  }
+
+  /**
+   * Creates the table.
+   *
+   * @param string $tableName
+   *   The table name.
+   */
+  protected function createTable($tableName = 'tree') {
+    $schema = new Schema();
+    $tree = $schema->createTable($tableName);
     $tree->addColumn("id", "integer", ["unsigned" => TRUE]);
     $tree->addColumn("revision_id", "integer", ["unsigned" => TRUE]);
     $tree->addColumn("nested_left", "integer", ["unsigned" => TRUE]);

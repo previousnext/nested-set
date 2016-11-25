@@ -32,7 +32,18 @@ class DbalNestedSet implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function insertNodeBelow(Node $target, Node $node) {
+  public function addRootNode(Node $node) {
+    $maxRight = $this->connection->fetchColumn('SELECT MAX(nested_right) FROM tree');
+    if ($maxRight === FALSE) {
+      $maxRight = 0;
+    }
+    return $this->doInsertNode($node->getId(), $node->getRevisionId(), $maxRight + 1, $maxRight + 2, 0);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function addNodeBelow(Node $target, Node $node) {
     $newLeftPosition = $target->getRight();
     $depth = $target->getDepth() + 1;
     return $this->insertNodeAtPostion($newLeftPosition, $depth, $node);
@@ -41,7 +52,7 @@ class DbalNestedSet implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function insertNodeBefore(Node $target, Node $node) {
+  public function addNodeBefore(Node $target, Node $node) {
     $newLeftPosition = $target->getLeft();
     $depth = $target->getDepth();
     return $this->insertNodeAtPostion($newLeftPosition, $depth, $node);
@@ -50,7 +61,7 @@ class DbalNestedSet implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function insertNodeAfter(Node $target, Node $node) {
+  public function addNodeAfter(Node $target, Node $node) {
     $newLeftPosition = $target->getRight() + 1;
     $depth = $target->getDepth();
     return $this->insertNodeAtPostion($newLeftPosition, $depth, $node);
@@ -85,23 +96,8 @@ class DbalNestedSet implements NestedSetInterface {
         [$newLeftPosition]
       );
 
-      // Create a new node object to be returned.
-      $newNode = new Node(
-        $node->getId(),
-        $node->getRevisionId(),
-        $newLeftPosition,
-        $newLeftPosition + 1,
-        $depth
-      );
-
-      // Insert the new node.
-      $this->connection->insert('tree', [
-        'id' => $newNode->getId(),
-        'revision_id' => $newNode->getRevisionId(),
-        'nested_left' => $newNode->getLeft(),
-        'nested_right' => $newNode->getRight(),
-        'depth' => $newNode->getDepth(),
-      ]);
+      // Insert the node.
+      $newNode = $this->doInsertNode($node->getId(), $node->getRevisionId(), $newLeftPosition, $newLeftPosition + 1, $depth);
 
       $this->connection->commit();
     }
@@ -111,6 +107,39 @@ class DbalNestedSet implements NestedSetInterface {
     }
     return $newNode;
 
+  }
+
+  /**
+   * Inserts a new node by its parameters.
+   *
+   * @param int|string $id
+   *   The node ID.
+   * @param int|string $revisionId
+   *   The node revision ID.
+   * @param int $left
+   *   The left position.
+   * @param int $right
+   *   The right position.
+   * @param int $depth
+   *   The depth.
+   *
+   * @return \PNX\NestedSet\Node
+   *   The new node.
+   */
+  protected function doInsertNode($id, $revisionId, $left, $right, $depth) {
+    // Create a new node object to be returned.
+    $newNode = new Node($id, $revisionId, $left, $right, $depth);
+
+    // Insert the new node.
+    $this->connection->insert('tree', [
+      'id' => $newNode->getId(),
+      'revision_id' => $newNode->getRevisionId(),
+      'nested_left' => $newNode->getLeft(),
+      'nested_right' => $newNode->getRight(),
+      'depth' => $newNode->getDepth(),
+    ]);
+
+    return $newNode;
   }
 
   /**
