@@ -8,17 +8,17 @@ namespace PNX\NestedSet;
 interface NestedSetInterface {
 
   /**
-   * Adds a child to the parent.
+   * Inserts a node below the target node.
    *
-   * @param \PNX\NestedSet\Node $parent
-   *   The parent.
-   * @param \PNX\NestedSet\Node $child
-   *   The child.
+   * @param \PNX\NestedSet\Node $target
+   *   The target node to insert below.
+   * @param \PNX\NestedSet\Node $node
+   *   The node to insert. Only id and revision ID are required.
    *
    * @return \PNX\NestedSet\Node
-   *   Returns a new child node with left and right.
+   *   Returns a new child with position values set.
    */
-  public function addNode(Node $parent, Node $child);
+  public function insertNodeBelow(Node $target, Node $node);
 
   /**
    * Deletes a node and moves descendants up a level.

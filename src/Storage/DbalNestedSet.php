@@ -32,27 +32,47 @@ class DbalNestedSet implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function addNode(Node $parent, Node $child) {
+  public function insertNodeBelow(Node $target, Node $node) {
+    $newLeftPosition = $target->getRight() - 1;
+    $depth = $target->getDepth() + 1;
+    return $this->insertNodeAtPostion($newLeftPosition, $depth, $node);
+  }
+
+  /**
+   * Inserts a node to the target position.
+   *
+   * @param int $newLeftPosition
+   *   The new left position.
+   * @param int $depth
+   *   The new depth.
+   * @param \PNX\NestedSet\Node $node
+   *   The node to insert.
+   *
+   * @return \PNX\NestedSet\Node
+   *   The new node with updated position.
+   *
+   * @throws \Exception
+   *   If a transaction error occurs.
+   */
+  protected function insertNodeAtPostion($newLeftPosition, $depth, Node $node) {
 
     try {
       $this->connection->beginTransaction();
 
-      list($right, $depth) = $this->getInsertionPosition($parent);
-
       // Move everything across two places.
       $this->connection->executeUpdate('UPDATE tree SET nested_right = nested_right + 2 WHERE nested_right > ?',
-        [$right]
+        [$newLeftPosition]
       );
       $this->connection->executeUpdate('UPDATE tree SET nested_left = nested_left + 2  WHERE nested_left > ?',
-        [$right]
+        [$newLeftPosition]
       );
 
       // Create a new node object to be returned.
       $newNode = new Node(
-        $child->getId(),
-        $child->getRevisionId(),
-        $right + 1,
-        $right + 2,
+        $node->getId(),
+        $node->getRevisionId(),
+        $newLeftPosition + 1,
+        $newLeftPosition + 2,
         $depth
       );
 
@@ -73,23 +93,6 @@ class DbalNestedSet implements NestedSetInterface {
     }
     return $newNode;
 
-  }
-
-  /**
-   * Finds the right-most child node.
-   *
-   * @param \PNX\NestedSet\Node $parent
-   *   The parent node.
-   *
-   * @return \PNX\NestedSet\Node
-   *   The right-most child node.
-   */
-  protected function findRightMostChild(Node $parent) {
-    $result = $this->connection->fetchAssoc('SELECT id, revision_id, nested_left, nested_right, depth FROM tree WHERE nested_right = ? - 1',
-      [$parent->getRight()]);
-    if ($result) {
-      return new Node($result['id'], $result['revision_id'], $result['nested_left'], $result['nested_right'], $result['depth']);
-    }
   }
 
   /**
@@ -337,19 +340,6 @@ class DbalNestedSet implements NestedSetInterface {
   }
 
   /**
-   * Determines if this node is a 'leaf', i.e. has no children.
-   *
-   * @param \PNX\NestedSet\Node $node
-   *   The node to check.
-   *
-   * @return bool
-   *   TRUE if there are no children. FALSE otherwise.
-   */
-  protected function isLeaf(Node $node) {
-    return $node->getRight() - $node->getLeft() === 1;
-  }
-
-  /**
    * {@inheritdoc}
    */
   public function getNodeAtPosition($left) {
@@ -359,33 +349,6 @@ class DbalNestedSet implements NestedSetInterface {
     if ($result) {
       return new Node($result['id'], $result['revision_id'], $result['nested_left'], $result['nested_right'], $result['depth']);
     }
-  }
-
-  /**
-   * Gets the insertion position under the given parent.
-   *
-   * Takes into account if the parent has no children.
-   *
-   * @param \PNX\NestedSet\Node $parent
-   *   The parent node.
-   *
-   * @return int[]
-   *   The right and depth postiions.
-   */
-  protected function getInsertionPosition(Node $parent) {
-    if ($this->isLeaf($parent)) {
-      // We are on a leaf node.
-      $right = $parent->getLeft();
-      $depth = $parent->getDepth() + 1;
-    }
-    else {
-      // Find right most child.
-      /** @var Node $rightChild */
-      $rightChild = $this->findRightMostChild($parent);
-      $right = $rightChild->getRight();
-      $depth = $rightChild->getDepth();
-    }
-    return [$right, $depth];
   }
 
 }

@@ -167,7 +167,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $parent = $this->nestedSet->getNode(3, 1);
     $child = new Node(12, 1);
 
-    $newNode = $this->nestedSet->addNode($parent, $child);
+    $newNode = $this->nestedSet->insertNodeBelow($parent, $child);
 
     // Should be inserted in right-most spot.
     $this->assertEquals(21, $newNode->getLeft());
@@ -189,7 +189,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $parent = $this->nestedSet->getNode(6, 1);
     $child = new Node(13, 1);
 
-    $newNode = $this->nestedSet->addNode($parent, $child);
+    $newNode = $this->nestedSet->insertNodeBelow($parent, $child);
 
     // Should be inserted below 6 with depth 4.
     $this->assertEquals(7, $newNode->getLeft());
