@@ -10,108 +10,108 @@ interface NestedSetInterface {
   /**
    * Adds a child to the parent.
    *
-   * @param \PNX\Tree\Leaf $parent
+   * @param \PNX\Tree\Node $parent
    *   The parent.
-   * @param \PNX\Tree\Leaf $child
+   * @param \PNX\Tree\Node $child
    *   The child.
    *
-   * @return \PNX\Tree\Leaf
-   *   Returns a new child leaf with left and right.
+   * @return \PNX\Tree\Node
+   *   Returns a new child node with left and right.
    */
-  public function addLeaf(Leaf $parent, Leaf $child);
+  public function addNode(Node $parent, Node $child);
 
   /**
-   * Deletes a leaf and moves descendants up a level.
+   * Deletes a node and moves descendants up a level.
    *
-   * @param \PNX\Tree\Leaf $leaf
-   *   The leaf to delete.
+   * @param \PNX\Tree\Node $node
+   *   The node to delete.
    */
-  public function deleteLeaf(Leaf $leaf);
+  public function deleteNode(Node $node);
 
   /**
-   * Deletes a leaf and all it's descendants.
+   * Deletes a node and all it's descendants.
    *
-   * @param \PNX\Tree\Leaf $leaf
-   *   The leaf to delete.
+   * @param \PNX\Tree\Node $node
+   *   The node to delete.
    */
-  public function deleteSubTree(Leaf $leaf);
+  public function deleteSubTree(Node $node);
 
   /**
-   * Finds all descendants of a leaf.
+   * Finds all descendants of a node.
    *
-   * @param \PNX\Tree\Leaf $leaf
-   *   The leaf.
+   * @param \PNX\Tree\Node $node
+   *   The node.
    * @param int $depth
    *   (optional) A depth limit. Defaults to 0, no limit.
    *
    * @return array
    *   The nested array of descendants.
    */
-  public function findDescendants(Leaf $leaf, $depth = 0);
+  public function findDescendants(Node $node, $depth = 0);
 
   /**
-   * Finds all ancestors of a leaf.
+   * Finds all ancestors of a node.
    *
-   * @param \PNX\Tree\Leaf $leaf
-   *   The leaf.
+   * @param \PNX\Tree\Node $node
+   *   The node.
    *
    * @return array
    *   The ancestors.
    */
-  public function findAncestors(Leaf $leaf);
+  public function findAncestors(Node $node);
 
   /**
-   * Gets a leaf for the ID and Revision ID.
+   * Gets a node for the ID and Revision ID.
    *
    * @param int|string $id
    *   The ID.
    * @param int|string $revision_id
    *   The revision ID.
    *
-   * @return \PNX\Tree\Leaf
-   *   The leaf.
+   * @return \PNX\Tree\Node
+   *   The node.
    */
-  public function getLeaf($id, $revision_id);
+  public function getNode($id, $revision_id);
 
   /**
-   * Moves a Leaf and its sub-tree below the target leaf.
+   * Moves a node and its sub-tree below the target node.
    *
-   * @param Leaf $target
-   *   The leaf to move below.
-   * @param \PNX\Tree\Leaf $leaf
-   *   The leaf to move.
+   * @param Node $target
+   *   The node to move below.
+   * @param \PNX\Tree\Node $node
+   *   The node to move.
    */
-  public function moveSubTreeBelow(Leaf $target, Leaf $leaf);
+  public function moveSubTreeBelow(Node $target, Node $node);
 
   /**
-   * Moves a Leaf and its sub-tree before the target leaf.
+   * Moves a node and its sub-tree before the target node.
    *
-   * @param Leaf $target
-   *   The leaf to move before.
-   * @param \PNX\Tree\Leaf $leaf
-   *   The leaf to move.
+   * @param Node $target
+   *   The node to move before.
+   * @param \PNX\Tree\Node $node
+   *   The node to move.
    */
-  public function moveSubTreeBefore(Leaf $target, Leaf $leaf);
+  public function moveSubTreeBefore(Node $target, Node $node);
 
   /**
-   * Moves a Leaf and its sub-tree after the target leaf.
+   * Moves a node and its sub-tree after the target node.
    *
-   * @param Leaf $target
-   *   The leaf to move after.
-   * @param \PNX\Tree\Leaf $leaf
-   *   The leaf to move.
+   * @param Node $target
+   *   The node to move after.
+   * @param \PNX\Tree\Node $node
+   *   The node to move.
    */
-  public function moveSubTreeAfter(Leaf $target, Leaf $leaf);
+  public function moveSubTreeAfter(Node $target, Node $node);
 
   /**
-   * Gets a leaf at a specified left position.
+   * Gets a node at a specified left position.
    *
    * @param int $left
    *   The left position.
    *
-   * @return Leaf
-   *   The leaf.
+   * @return Node
+   *   The node.
    */
-  public function getLeafAtPosition($left);
+  public function getNodeAtPosition($left);
 
 }

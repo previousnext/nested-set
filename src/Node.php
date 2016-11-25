@@ -3,12 +3,12 @@
 namespace PNX\Tree;
 
 /**
- * Model object that represents a leaf in a tree.
+ * Model object that represents a node in a tree.
  */
-class Leaf {
+class Node {
 
   /**
-   * The Leaf ID.
+   * The node ID.
    *
    * @var string|int
    */
@@ -43,7 +43,7 @@ class Leaf {
   protected $depth;
 
   /**
-   * Leaf constructor.
+   * node constructor.
    *
    * @param int|string $id
    *   The ID.
