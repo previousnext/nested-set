@@ -33,8 +33,26 @@ class DbalNestedSet implements NestedSetInterface {
    * {@inheritdoc}
    */
   public function insertNodeBelow(Node $target, Node $node) {
-    $newLeftPosition = $target->getRight() - 1;
+    $newLeftPosition = $target->getRight();
     $depth = $target->getDepth() + 1;
+    return $this->insertNodeAtPostion($newLeftPosition, $depth, $node);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function insertNodeBefore(Node $target, Node $node) {
+    $newLeftPosition = $target->getLeft();
+    $depth = $target->getDepth();
+    return $this->insertNodeAtPostion($newLeftPosition, $depth, $node);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function insertNodeAfter(Node $target, Node $node) {
+    $newLeftPosition = $target->getRight() + 1;
+    $depth = $target->getDepth();
     return $this->insertNodeAtPostion($newLeftPosition, $depth, $node);
   }
 
@@ -59,11 +77,11 @@ class DbalNestedSet implements NestedSetInterface {
     try {
       $this->connection->beginTransaction();
 
-      // Move everything across two places.
-      $this->connection->executeUpdate('UPDATE tree SET nested_right = nested_right + 2 WHERE nested_right > ?',
+      // Make space for inserting node.
+      $this->connection->executeUpdate('UPDATE tree SET nested_right = nested_right + 2 WHERE nested_right >= ?',
         [$newLeftPosition]
       );
-      $this->connection->executeUpdate('UPDATE tree SET nested_left = nested_left + 2  WHERE nested_left > ?',
+      $this->connection->executeUpdate('UPDATE tree SET nested_left = nested_left + 2  WHERE nested_left >= ?',
         [$newLeftPosition]
       );
 
@@ -71,8 +89,8 @@ class DbalNestedSet implements NestedSetInterface {
       $newNode = new Node(
         $node->getId(),
         $node->getRevisionId(),
+        $newLeftPosition,
         $newLeftPosition + 1,
-        $newLeftPosition + 2,
         $depth
       );
 
@@ -153,6 +171,23 @@ class DbalNestedSet implements NestedSetInterface {
       $ancestors[] = new Node($row['id'], $row['revision_id'], $row['nested_left'], $row['nested_right'], $row['depth']);
     }
     return $ancestors;
+  }
+
+  /**
+   * Finds the root node for this node.
+   *
+   * @param \PNX\NestedSet\Node $node
+   *   The start node.
+   *
+   * @return \PNX\NestedSet\Node
+   *   The root node.
+   */
+  public function findRoot(Node $node) {
+    $ancestors = $this->findAncestors($node);
+    if (!empty($ancestors)) {
+      return array_shift($ancestors);
+    }
+    return NULL;
   }
 
   /**

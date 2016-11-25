@@ -160,9 +160,9 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
-   * Tests adding a node.
+   * Tests inserting a node below a parent with existing children.
    */
-  public function testAddNodeWithExistingChildren() {
+  public function testInsertNodeBelowWithExistingChildren() {
 
     $parent = $this->nestedSet->getNode(3, 1);
     $child = new Node(12, 1);
@@ -182,14 +182,13 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
-   * Tests adding a node.
+   * Tests inserting a node below a parent with no children.
    */
-  public function testAddNodeWithNoChildren() {
+  public function testInsertNodeBelowWithNoChildren() {
+    $target = $this->nestedSet->getNode(6, 1);
+    $node = new Node(13, 1);
 
-    $parent = $this->nestedSet->getNode(6, 1);
-    $child = new Node(13, 1);
-
-    $newNode = $this->nestedSet->insertNodeBelow($parent, $child);
+    $newNode = $this->nestedSet->insertNodeBelow($target, $node);
 
     // Should be inserted below 6 with depth 4.
     $this->assertEquals(7, $newNode->getLeft());
@@ -200,6 +199,46 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $newParent = $this->nestedSet->getNode(6, 1);
     $this->assertEquals(6, $newParent->getLeft());
     $this->assertEquals(9, $newParent->getRight());
+  }
+
+  /**
+   * Tests inserting a node before another sibling.
+   */
+  public function testInsertNodeBefore() {
+    $parent = $this->nestedSet->getNode(6, 1);
+    $child = new Node(14, 1);
+
+    $newNode = $this->nestedSet->insertNodeBefore($parent, $child);
+
+    // Should be inserted below 6 with depth 4.
+    $this->assertEquals(6, $newNode->getLeft());
+    $this->assertEquals(7, $newNode->getRight());
+    $this->assertEquals(3, $newNode->getDepth());
+
+    // Parent node right should have incremented.
+    $newParent = $this->nestedSet->getNode(4, 1);
+    $this->assertEquals(3, $newParent->getLeft());
+    $this->assertEquals(10, $newParent->getRight());
+  }
+
+  /**
+   * Tests inserting a node after another sibling.
+   */
+  public function testInsertNodeAfter() {
+    $parent = $this->nestedSet->getNode(5, 1);
+    $child = new Node(15, 1);
+
+    $newNode = $this->nestedSet->insertNodeAfter($parent, $child);
+
+    // Should be inserted below 6 with depth 4.
+    $this->assertEquals(6, $newNode->getLeft());
+    $this->assertEquals(7, $newNode->getRight());
+    $this->assertEquals(3, $newNode->getDepth());
+
+    // Parent node right should have incremented.
+    $newParent = $this->nestedSet->getNode(4, 1);
+    $this->assertEquals(3, $newParent->getLeft());
+    $this->assertEquals(10, $newParent->getRight());
   }
 
   /**
@@ -226,7 +265,6 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(2, $node->getDepth());
 
     $tree = $this->nestedSet->getTree();
-    $this->printTree($tree);
   }
 
   /**
@@ -254,18 +292,11 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Tests moving a sub-tree under a parent node.
    */
   public function testMoveSubTreeBelow() {
-    print "BEFORE:" . PHP_EOL;
-    $tree = $this->nestedSet->getTree();
-    $this->printTree($tree);
 
     $parent = $this->nestedSet->getNode(1, 1);
     $node = $this->nestedSet->getNode(7, 1);
 
     $this->nestedSet->moveSubTreeBelow($parent, $node);
-
-    print "AFTER:" . PHP_EOL;
-    $tree = $this->nestedSet->getTree();
-    $this->printTree($tree);
 
     // Check node is in new position.
     $node = $this->nestedSet->getNode(7, 1);
@@ -296,18 +327,11 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Tests moving a sub-tree before a target node.
    */
   public function testMoveSubTreeBefore() {
-    print "BEFORE:" . PHP_EOL;
-    $tree = $this->nestedSet->getTree();
-    $this->printTree($tree);
 
     $target = $this->nestedSet->getNode(4, 1);
     $node = $this->nestedSet->getNode(7, 1);
 
     $this->nestedSet->moveSubTreeBefore($target, $node);
-
-    print "AFTER:" . PHP_EOL;
-    $tree = $this->nestedSet->getTree();
-    $this->printTree($tree);
 
     // Check node is in new position.
     $node = $this->nestedSet->getNode(7, 1);

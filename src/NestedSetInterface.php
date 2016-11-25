@@ -16,9 +16,35 @@ interface NestedSetInterface {
    *   The node to insert. Only id and revision ID are required.
    *
    * @return \PNX\NestedSet\Node
-   *   Returns a new child with position values set.
+   *   Returns a new node with position values set.
    */
   public function insertNodeBelow(Node $target, Node $node);
+
+  /**
+   * Inserts a node before the target node.
+   *
+   * @param \PNX\NestedSet\Node $target
+   *   The target node to insert before.
+   * @param \PNX\NestedSet\Node $node
+   *   The node to insert. Only id and revision ID are required.
+   *
+   * @return \PNX\NestedSet\Node
+   *   Returns a node with position values set.
+   */
+  public function insertNodeBefore(Node $target, Node $node);
+
+  /**
+   * Inserts a node after the target node.
+   *
+   * @param \PNX\NestedSet\Node $target
+   *   The target node to insert after.
+   * @param \PNX\NestedSet\Node $node
+   *   The node to insert. Only id and revision ID are required.
+   *
+   * @return \PNX\NestedSet\Node
+   *   Returns a node with position values set.
+   */
+  public function insertNodeAfter(Node $target, Node $node);
 
   /**
    * Deletes a node and moves descendants up a level.
