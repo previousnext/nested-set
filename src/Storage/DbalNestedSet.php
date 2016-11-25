@@ -145,10 +145,7 @@ class DbalNestedSet implements NestedSetInterface {
   }
 
   /**
-   * Fetches the entire tree.
-   *
-   * @return array
-   *   The tree.
+   * {@inheritdoc}
    */
   public function getTree() {
     $tree = [];

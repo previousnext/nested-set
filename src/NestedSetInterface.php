@@ -114,4 +114,12 @@ interface NestedSetInterface {
    */
   public function getNodeAtPosition($left);
 
+  /**
+   * Fetches the entire tree.
+   *
+   * @return array
+   *   The tree.
+   */
+  public function getTree();
+
 }

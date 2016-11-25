@@ -43,7 +43,7 @@ class Node {
   protected $depth;
 
   /**
-   * node constructor.
+   * Node constructor.
    *
    * @param int|string $id
    *   The ID.
