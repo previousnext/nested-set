@@ -10,12 +10,12 @@ interface NestedSetInterface {
   /**
    * Adds a child to the parent.
    *
-   * @param \PNX\Tree\Node $parent
+   * @param \PNX\NestedSet\Node $parent
    *   The parent.
-   * @param \PNX\Tree\Node $child
+   * @param \PNX\NestedSet\Node $child
    *   The child.
    *
-   * @return \PNX\Tree\Node
+   * @return \PNX\NestedSet\Node
    *   Returns a new child node with left and right.
    */
   public function addNode(Node $parent, Node $child);
@@ -23,7 +23,7 @@ interface NestedSetInterface {
   /**
    * Deletes a node and moves descendants up a level.
    *
-   * @param \PNX\Tree\Node $node
+   * @param \PNX\NestedSet\Node $node
    *   The node to delete.
    */
   public function deleteNode(Node $node);
@@ -31,7 +31,7 @@ interface NestedSetInterface {
   /**
    * Deletes a node and all it's descendants.
    *
-   * @param \PNX\Tree\Node $node
+   * @param \PNX\NestedSet\Node $node
    *   The node to delete.
    */
   public function deleteSubTree(Node $node);
@@ -39,7 +39,7 @@ interface NestedSetInterface {
   /**
    * Finds all descendants of a node.
    *
-   * @param \PNX\Tree\Node $node
+   * @param \PNX\NestedSet\Node $node
    *   The node.
    * @param int $depth
    *   (optional) A depth limit. Defaults to 0, no limit.
@@ -52,7 +52,7 @@ interface NestedSetInterface {
   /**
    * Finds all immediate children of a node.
    *
-   * @param \PNX\Tree\Node $node
+   * @param \PNX\NestedSet\Node $node
    *   The node.
    *
    * @return array
@@ -63,7 +63,7 @@ interface NestedSetInterface {
   /**
    * Finds all ancestors of a node.
    *
-   * @param \PNX\Tree\Node $node
+   * @param \PNX\NestedSet\Node $node
    *   The node.
    *
    * @return array
@@ -79,7 +79,7 @@ interface NestedSetInterface {
    * @param int|string $revision_id
    *   The revision ID.
    *
-   * @return \PNX\Tree\Node
+   * @return \PNX\NestedSet\Node
    *   The node.
    */
   public function getNode($id, $revision_id);
@@ -89,7 +89,7 @@ interface NestedSetInterface {
    *
    * @param Node $target
    *   The node to move below.
-   * @param \PNX\Tree\Node $node
+   * @param \PNX\NestedSet\Node $node
    *   The node to move.
    */
   public function moveSubTreeBelow(Node $target, Node $node);
@@ -99,7 +99,7 @@ interface NestedSetInterface {
    *
    * @param Node $target
    *   The node to move before.
-   * @param \PNX\Tree\Node $node
+   * @param \PNX\NestedSet\Node $node
    *   The node to move.
    */
   public function moveSubTreeBefore(Node $target, Node $node);
@@ -109,7 +109,7 @@ interface NestedSetInterface {
    *
    * @param Node $target
    *   The node to move after.
-   * @param \PNX\Tree\Node $node
+   * @param \PNX\NestedSet\Node $node
    *   The node to move.
    */
   public function moveSubTreeAfter(Node $target, Node $node);

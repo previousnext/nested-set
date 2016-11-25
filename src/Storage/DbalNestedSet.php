@@ -78,10 +78,10 @@ class DbalNestedSet implements NestedSetInterface {
   /**
    * Finds the right-most child node.
    *
-   * @param \PNX\Tree\Node $parent
+   * @param \PNX\NestedSet\Node $parent
    *   The parent node.
    *
-   * @return \PNX\Tree\Node
+   * @return \PNX\NestedSet\Node
    *   The right-most child node.
    */
   protected function findRightMostChild(Node $parent) {
@@ -269,7 +269,7 @@ class DbalNestedSet implements NestedSetInterface {
    *
    * @param int $newLeftPosition
    *   The new left position.
-   * @param \PNX\Tree\Node $node
+   * @param \PNX\NestedSet\Node $node
    *   The node to move.
    *
    * @throws \Exception
@@ -327,7 +327,7 @@ class DbalNestedSet implements NestedSetInterface {
   /**
    * Determines if this node is a 'leaf', i.e. has no children.
    *
-   * @param \PNX\Tree\Node $node
+   * @param \PNX\NestedSet\Node $node
    *   The node to check.
    *
    * @return bool
@@ -354,7 +354,7 @@ class DbalNestedSet implements NestedSetInterface {
    *
    * Takes into account if the parent has no children.
    *
-   * @param \PNX\Tree\Node $parent
+   * @param \PNX\NestedSet\Node $parent
    *   The parent node.
    *
    * @return int[]
