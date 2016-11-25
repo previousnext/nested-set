@@ -72,6 +72,17 @@ interface NestedSetInterface {
   public function findAncestors(Node $node);
 
   /**
+   * Finds the parent node.
+   *
+   * @param \PNX\NestedSet\Node $node
+   *   The node.
+   *
+   * @return Node
+   *   The parent node.
+   */
+  public function findParent(Node $node);
+
+  /**
    * Gets a node for the ID and Revision ID.
    *
    * @param int|string $id

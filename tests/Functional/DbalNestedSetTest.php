@@ -144,6 +144,22 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
+   * Tests finding the parent node.
+   */
+  public function testFindParent() {
+
+    $node = $this->nestedSet->getNode(7, 1);
+
+    $parent = $this->nestedSet->findParent($node);
+
+    $this->assertEquals(3, $parent->getId());
+    $this->assertEquals(1, $parent->getRevisionId());
+    $this->assertEquals(10, $parent->getLeft());
+    $this->assertEquals(21, $parent->getRight());
+
+  }
+
+  /**
    * Tests adding a node.
    */
   public function testAddNodeWithExistingChildren() {

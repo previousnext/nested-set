@@ -155,6 +155,18 @@ class DbalNestedSet implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
+  public function findParent(Node $node) {
+    $ancestors = $this->findAncestors($node);
+    if (count($ancestors) > 1) {
+      // Parent is 2nd-last element.
+      return $ancestors[count($ancestors) - 2];
+    }
+    return NULL;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getTree() {
     $tree = [];
     $stmt = $this->connection->executeQuery('SELECT id, revision_id, nested_left, nested_right, depth FROM tree ORDER BY nested_left');
