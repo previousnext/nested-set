@@ -238,18 +238,49 @@ class DbalNestedSet implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function moveSubTree($newLeftPostion, Leaf $leaf) {
+  public function moveSubTreeBelow(Leaf $target, Leaf $leaf) {
+    $newLeftPosition = $target->getLeft() + 1;
+    $this->moveSubTreeToPosition($newLeftPosition, $leaf);
+  }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function moveSubTreeBefore(Leaf $target, Leaf $leaf) {
+    $newLeftPosition = $target->getLeft();
+    $this->moveSubTreeToPosition($newLeftPosition, $leaf);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function moveSubTreeAfter(Leaf $target, Leaf $leaf) {
+    $newLeftPosition = $target->getRight() + 1;
+    $this->moveSubTreeToPosition($newLeftPosition, $leaf);
+  }
+
+  /**
+   * Moves a subtree to a new position.
+   *
+   * @param int $newLeftPosition
+   *   The new left position.
+   * @param \PNX\Tree\Leaf $leaf
+   *   The leaf to move.
+   *
+   * @throws \Exception
+   *   If a transaction error occurs.
+   */
+  protected function moveSubTreeToPosition($newLeftPosition, Leaf $leaf) {
     try {
       // Calculate position adjustment variables.
       $width = $leaf->getRight() - $leaf->getLeft() + 1;
-      $distance = $newLeftPostion - $leaf->getLeft();
+      $distance = $newLeftPosition - $leaf->getLeft();
       $tempPos = $leaf->getLeft();
 
       $this->connection->beginTransaction();
 
       // Calculate depth difference.
-      $newLeaf = $this->getLeafAtPosition($newLeftPostion);
+      $newLeaf = $this->getLeafAtPosition($newLeftPosition);
       $depthDiff = $newLeaf->getDepth() - $leaf->getDepth();
 
       // Backwards movement must account for new space.
@@ -260,11 +291,11 @@ class DbalNestedSet implements NestedSetInterface {
 
       // Create new space for subtree.
       $this->connection->executeUpdate('UPDATE tree SET nested_left = nested_left + ? WHERE nested_left >= ?',
-        [$width, $newLeftPostion]
+        [$width, $newLeftPosition]
       );
 
       $this->connection->executeUpdate('UPDATE tree SET nested_right = nested_right + ? WHERE nested_right >= ?',
-        [$width, $newLeftPostion]
+        [$width, $newLeftPosition]
       );
 
       // Move subtree into new space.

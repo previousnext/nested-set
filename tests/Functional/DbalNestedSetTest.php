@@ -235,17 +235,17 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
-   * Tests moving a sub-tree.
+   * Tests moving a sub-tree under a parent leaf.
    */
-  public function testMoveSubTree() {
+  public function testMoveSubTreeBelow() {
     print "BEFORE:" . PHP_EOL;
     $tree = $this->nestedSet->getTree();
     $this->printTree($tree);
 
+    $parent = $this->nestedSet->getLeaf(1, 1);
     $leaf = $this->nestedSet->getLeaf(7, 1);
 
-    $newPosition = 2;
-    $this->nestedSet->moveSubTree($newPosition, $leaf);
+    $this->nestedSet->moveSubTreeBelow($parent, $leaf);
 
     print "AFTER:" . PHP_EOL;
     $tree = $this->nestedSet->getTree();
@@ -267,6 +267,48 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(5, $leaf->getLeft());
     $this->assertEquals(6, $leaf->getRight());
     $this->assertEquals(2, $leaf->getDepth());
+
+    // Check old parent is updated.
+    $leaf = $this->nestedSet->getLeaf(3, 1);
+    $this->assertEquals(16, $leaf->getLeft());
+    $this->assertEquals(21, $leaf->getRight());
+    $this->assertEquals(1, $leaf->getDepth());
+
+  }
+
+  /**
+   * Tests moving a sub-tree before a target leaf.
+   */
+  public function testMoveSubTreeBefore() {
+    print "BEFORE:" . PHP_EOL;
+    $tree = $this->nestedSet->getTree();
+    $this->printTree($tree);
+
+    $target = $this->nestedSet->getLeaf(4, 1);
+    $leaf = $this->nestedSet->getLeaf(7, 1);
+
+    $this->nestedSet->moveSubTreeBefore($target, $leaf);
+
+    print "AFTER:" . PHP_EOL;
+    $tree = $this->nestedSet->getTree();
+    $this->printTree($tree);
+
+    // Check leaf is in new position.
+    $leaf = $this->nestedSet->getLeaf(7, 1);
+    $this->assertEquals(3, $leaf->getLeft());
+    $this->assertEquals(8, $leaf->getRight());
+    $this->assertEquals(2, $leaf->getDepth());
+
+    // Check children are in new position.
+    $leaf = $this->nestedSet->getLeaf(10, 1);
+    $this->assertEquals(4, $leaf->getLeft());
+    $this->assertEquals(5, $leaf->getRight());
+    $this->assertEquals(3, $leaf->getDepth());
+
+    $leaf = $this->nestedSet->getLeaf(11, 1);
+    $this->assertEquals(6, $leaf->getLeft());
+    $this->assertEquals(7, $leaf->getRight());
+    $this->assertEquals(3, $leaf->getDepth());
 
     // Check old parent is updated.
     $leaf = $this->nestedSet->getLeaf(3, 1);
