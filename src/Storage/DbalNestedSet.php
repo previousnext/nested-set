@@ -37,18 +37,7 @@ class DbalNestedSet implements NestedSetInterface {
     try {
       $this->connection->beginTransaction();
 
-      if ($parent->getRight() - $parent->getLeft() === 1) {
-        // We are on a leaf node.
-        $right = $parent->getLeft();
-        $depth = $parent->getDepth() + 1;
-      }
-      else {
-        // Find right most child.
-        /** @var Leaf $rightChild */
-        $rightChild = $this->findRightMostChild($parent);
-        $right = $rightChild->getRight();
-        $depth = $rightChild->getDepth();
-      }
+      list($right, $depth) = $this->getInsertionPosition($parent);
 
       // Move everything across two places.
       $this->connection->executeUpdate('UPDATE tree SET nested_right = nested_right + 2 WHERE nested_right > ?',
@@ -183,7 +172,7 @@ class DbalNestedSet implements NestedSetInterface {
       $this->connection->beginTransaction();
 
       // Delete the leaf.
-      $this->connection->executeUpdate('DELETE from tree WHERE nested_left = ?',
+      $this->connection->executeUpdate('DELETE FROM tree WHERE nested_left = ?',
         [$left]
       );
 
@@ -225,7 +214,7 @@ class DbalNestedSet implements NestedSetInterface {
       $this->connection->beginTransaction();
 
       // Delete the leaf.
-      $this->connection->executeUpdate('DELETE from tree WHERE nested_left BETWEEN ? AND ?',
+      $this->connection->executeUpdate('DELETE FROM tree WHERE nested_left BETWEEN ? AND ?',
         [$left, $right]
       );
 
@@ -249,8 +238,106 @@ class DbalNestedSet implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function moveSubTree(Leaf $parent, Leaf $leaf) {
-    // TODO: Implement moveSubTree() method.
+  public function moveSubTree($newLeftPostion, Leaf $leaf) {
+
+    try {
+      // Calculate position adjustment variables.
+      $width = $leaf->getRight() - $leaf->getLeft() + 1;
+      $distance = $newLeftPostion - $leaf->getLeft();
+      $tempPos = $leaf->getLeft();
+
+      $this->connection->beginTransaction();
+
+      // Calculate depth difference.
+      $newLeaf = $this->getLeafAtPosition($newLeftPostion);
+      $depthDiff = $newLeaf->getDepth() - $leaf->getDepth();
+
+      // Backwards movement must account for new space.
+      if ($distance < 0) {
+        $distance -= $width;
+        $tempPos += $width;
+      }
+
+      // Create new space for subtree.
+      $this->connection->executeUpdate('UPDATE tree SET nested_left = nested_left + ? WHERE nested_left >= ?',
+        [$width, $newLeftPostion]
+      );
+
+      $this->connection->executeUpdate('UPDATE tree SET nested_right = nested_right + ? WHERE nested_right >= ?',
+        [$width, $newLeftPostion]
+      );
+
+      // Move subtree into new space.
+      $this->connection->executeUpdate('UPDATE tree SET nested_left = nested_left + ?, nested_right = nested_right + ?, depth = depth + ? WHERE nested_left >= ? AND nested_right < ?',
+        [$distance, $distance, $depthDiff, $tempPos, $tempPos + $width]
+      );
+
+      // Remove old space vacated by subtree.
+      $this->connection->executeUpdate('UPDATE tree SET  nested_left = nested_left - ? WHERE nested_left > ?',
+        [$width, $leaf->getRight()]
+      );
+
+      $this->connection->executeUpdate('UPDATE tree SET nested_right = nested_right - ? WHERE nested_right > ?',
+        [$width, $leaf->getRight()]
+      );
+    }
+    catch (Exception $e) {
+      $this->connection->rollBack();
+      throw $e;
+    }
+
+  }
+
+  /**
+   * Determines if this leaf is a 'leaf', i.e. has no children.
+   *
+   * @param \PNX\Tree\Leaf $leaf
+   *   The leaf to check.
+   *
+   * @return bool
+   *   TRUE if there are no children. FALSE otherwise.
+   */
+  protected function isLeaf(Leaf $leaf) {
+    return $leaf->getRight() - $leaf->getLeft() === 1;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getLeafAtPosition($left) {
+    $result = $this->connection->fetchAssoc("SELECT id, revision_id, nested_left, nested_right, depth FROM tree WHERE nested_left = ?",
+      [$left]
+    );
+    if ($result) {
+      return new Leaf($result['id'], $result['revision_id'], $result['nested_left'], $result['nested_right'], $result['depth']);
+    }
+  }
+
+  /**
+   * Gets the insertion position under the given parent.
+   *
+   * Takes into account if the parent has no children.
+   *
+   * @param \PNX\Tree\Leaf $parent
+   *   The parent leaf.
+   *
+   * @return int[]
+   *   The right and depth postiions.
+   */
+  protected function getInsertionPosition(Leaf $parent) {
+    if ($this->isLeaf($parent)) {
+      // We are on a leaf node.
+      $right = $parent->getLeft();
+      $depth = $parent->getDepth() + 1;
+    }
+    else {
+      // Find right most child.
+      /** @var Leaf $rightChild */
+      $rightChild = $this->findRightMostChild($parent);
+      $right = $rightChild->getRight();
+      $depth = $rightChild->getDepth();
+    }
+    return [$right, $depth];
   }
 
 }

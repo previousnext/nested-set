@@ -74,13 +74,24 @@ interface NestedSetInterface {
   public function getLeaf($id, $revision_id);
 
   /**
-   * Moves a Leaf and its sub-tree under a new parent leaf.
+   * Moves a Leaf and its sub-tree into a new position.
    *
-   * @param \PNX\Tree\Leaf $parent
-   *   The parent leaf to move under.
+   * @param int $newLeftPosition
+   *   The new left position for the leaf.
    * @param \PNX\Tree\Leaf $leaf
    *   The leaf to move.
    */
-  public function moveSubTree(Leaf $parent, Leaf $leaf);
+  public function moveSubTree($newLeftPosition, Leaf $leaf);
+
+  /**
+   * Gets a leaf at a specified left position.
+   *
+   * @param int $left
+   *   The left position.
+   *
+   * @return Leaf
+   *   The leaf.
+   */
+  public function getLeafAtPosition($left);
 
 }

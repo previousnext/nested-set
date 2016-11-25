@@ -214,9 +214,9 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
-   * Tests deleting a leaf and its descendants.
+   * Tests deleting a leaf and its sub-tree.
    */
-  public function testDeleteLeafAndDescendants() {
+  public function testDeleteSubTree() {
 
     $leaf = $this->nestedSet->getLeaf(4, 1);
 
@@ -232,6 +232,48 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
 
     $leaf = $this->nestedSet->getLeaf(6, 1);
     $this->assertNull($leaf);
+  }
+
+  /**
+   * Tests moving a sub-tree.
+   */
+  public function testMoveSubTree() {
+    print "BEFORE:" . PHP_EOL;
+    $tree = $this->nestedSet->getTree();
+    $this->printTree($tree);
+
+    $leaf = $this->nestedSet->getLeaf(7, 1);
+
+    $newPosition = 2;
+    $this->nestedSet->moveSubTree($newPosition, $leaf);
+
+    print "AFTER:" . PHP_EOL;
+    $tree = $this->nestedSet->getTree();
+    $this->printTree($tree);
+
+    // Check leaf is in new position.
+    $leaf = $this->nestedSet->getLeaf(7, 1);
+    $this->assertEquals(2, $leaf->getLeft());
+    $this->assertEquals(7, $leaf->getRight());
+    $this->assertEquals(1, $leaf->getDepth());
+
+    // Check children are in new position.
+    $leaf = $this->nestedSet->getLeaf(10, 1);
+    $this->assertEquals(3, $leaf->getLeft());
+    $this->assertEquals(4, $leaf->getRight());
+    $this->assertEquals(2, $leaf->getDepth());
+
+    $leaf = $this->nestedSet->getLeaf(11, 1);
+    $this->assertEquals(5, $leaf->getLeft());
+    $this->assertEquals(6, $leaf->getRight());
+    $this->assertEquals(2, $leaf->getDepth());
+
+    // Check old parent is updated.
+    $leaf = $this->nestedSet->getLeaf(3, 1);
+    $this->assertEquals(16, $leaf->getLeft());
+    $this->assertEquals(21, $leaf->getRight());
+    $this->assertEquals(1, $leaf->getDepth());
+
   }
 
   /**
@@ -347,12 +389,12 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
-   * Prints out a tree.
+   * Prints out a tree to the console.
    *
    * @param array $tree
    *   The tree to print.
    */
-  protected function printTree($tree) {
+  public function printTree($tree) {
     $table = new Console_Table(CONSOLE_TABLE_ALIGN_RIGHT);
     $table->setHeaders(['ID', 'Rev', 'Left', 'Right', 'Depth']);
     $table->setAlign(0, CONSOLE_TABLE_ALIGN_LEFT);
