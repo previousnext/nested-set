@@ -21,12 +21,12 @@
     },
     "autoload": {
         "psr-4": {
-            "PNX\\Tree\\": "src"
+            "PNX\\NestedSet\\": "src"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "PNX\\Tree\\Tests\\": "tests"
+            "PNX\\NestedSet\\Tests\\": "tests"
         }
     },
     "config": {

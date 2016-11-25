@@ -1,6 +1,6 @@
 <?php
 
-namespace PNX\Tree;
+namespace PNX\NestedSet;
 
 /**
  * Model object that represents a node in a tree.

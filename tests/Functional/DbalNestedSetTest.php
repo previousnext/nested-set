@@ -1,13 +1,13 @@
 <?php
 
-namespace PNX\Tree\Tests\Functional;
+namespace PNX\NestedSet\Tests\Functional;
 
 use Console_Table;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Schema;
-use PNX\Tree\Node;
-use PNX\Tree\Storage\DbalNestedSet;
+use PNX\NestedSet\Node;
+use PNX\NestedSet\Storage\DbalNestedSet;
 
 /**
  * Tests the Dbal Tree implementation.

@@ -1,6 +1,6 @@
 <?php
 
-namespace PNX\Tree;
+namespace PNX\NestedSet;
 
 /**
  * Provides a tree implementation.
