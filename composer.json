@@ -1,5 +1,5 @@
 {
-    "name": "pnx/tree",
+    "name": "pnx/nested-set",
     "description": "A library for working with tree implementations.",
     "type": "library",
     "license": "GPL-2.0+",
