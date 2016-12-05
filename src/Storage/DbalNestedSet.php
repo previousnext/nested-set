@@ -2,10 +2,9 @@
 
 namespace PNX\NestedSet\Storage;
 
-use Doctrine\DBAL\Connection;
 use Exception;
-use PNX\NestedSet\Node;
 use PNX\NestedSet\NestedSetInterface;
+use PNX\NestedSet\Node;
 
 /**
  * Provides a DBAL implementation of a Tree.
