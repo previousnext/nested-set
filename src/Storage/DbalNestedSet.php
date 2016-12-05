@@ -2,50 +2,14 @@
 
 namespace PNX\NestedSet\Storage;
 
-use Doctrine\DBAL\Connection;
 use Exception;
-use PNX\NestedSet\Node;
 use PNX\NestedSet\NestedSetInterface;
+use PNX\NestedSet\Node;
 
 /**
  * Provides a DBAL implementation of a Tree.
  */
-class DbalNestedSet implements NestedSetInterface {
-
-  /**
-   * The regex for validating table names.
-   */
-  const VALID_TABLE_REGEX = '/^[a-zA-Z]\w{1,64}$/';
-
-  /**
-   * The database connection.
-   *
-   * @var \Doctrine\DBAL\Connection
-   */
-  protected $connection;
-
-  /**
-   * The table name to use for storing the nested set.
-   *
-   * @var string
-   */
-  protected $tableName;
-
-  /**
-   * DbalTree constructor.
-   *
-   * @param \Doctrine\DBAL\Connection $connection
-   *   The database connection.
-   * @param string $tableName
-   *   (optional) The table name to use.
-   */
-  public function __construct(Connection $connection, $tableName = 'tree') {
-    $this->connection = $connection;
-    if (!preg_match(self::VALID_TABLE_REGEX, $tableName)) {
-      throw new \InvalidArgumentException("Table name must match the regex " . self::VALID_TABLE_REGEX);
-    }
-    $this->tableName = $tableName;
-  }
+class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
 
   /**
    * {@inheritdoc}
@@ -169,10 +133,10 @@ class DbalNestedSet implements NestedSetInterface {
     $query->select('child.id', 'child.revision_id', 'child.left_pos', 'child.right_pos', 'child.depth')
       ->from($this->tableName, 'child')
       ->from($this->tableName, 'parent')
-      ->where('child.left_pos > parent.left_pos')
-      ->andWhere('child.right_pos < parent.right_pos')
       ->andWhere('parent.id = :id')
       ->andWhere('parent.revision_id = :revision_id')
+      ->andwhere('child.left_pos > parent.left_pos')
+      ->andWhere('child.right_pos < parent.right_pos')
       ->setParameter(':id', $node->getId())
       ->setParameter(':revision_id', $node->getRevisionId());
     if ($depth > 0) {
