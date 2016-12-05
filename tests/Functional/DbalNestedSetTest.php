@@ -5,7 +5,6 @@ namespace PNX\NestedSet\Tests\Functional;
 use Console_Table;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Schema\Schema;
 use PNX\NestedSet\Node;
 use PNX\NestedSet\Storage\DbalNestedSet;
 use PNX\NestedSet\Storage\DbalNestedSetSchema;

@@ -2,7 +2,7 @@
 
 namespace PNX\NestedSet\Storage;
 
-use \Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Connection;
 
 /**
  * Abstract base class for DBAL storage classes.
