@@ -10,11 +10,11 @@ interface NestedSetSchemaInterface {
   /**
    * Creates the nested set table.
    */
-  public function createTable();
+  public function create();
 
   /**
    * Drops the nested set table.
    */
-  public function dropTable();
+  public function drop();
 
 }

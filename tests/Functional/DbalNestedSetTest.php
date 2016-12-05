@@ -54,7 +54,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     ], new Configuration());
 
     $this->schema = new DbalNestedSetSchema($this->connection, $this->tableName);
-    $this->schema->createTable();
+    $this->schema->create();
     $this->loadTestData();
     $this->nestedSet = new DbalNestedSet($this->connection, $this->tableName);
   }

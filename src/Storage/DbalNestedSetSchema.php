@@ -13,7 +13,7 @@ class DbalNestedSetSchema extends BaseDbalStorage implements NestedSetSchemaInte
   /**
    * {@inheritdoc}
    */
-  public function createTable() {
+  public function create() {
     $schema = new Schema();
     $tree = $schema->createTable($this->tableName);
     $tree->addColumn("id", "integer", ["unsigned" => TRUE]);
@@ -35,7 +35,7 @@ class DbalNestedSetSchema extends BaseDbalStorage implements NestedSetSchemaInte
   /**
    * {@inheritdoc}
    */
-  public function dropTable() {
+  public function drop() {
     $schema = new Schema();
     $schema->dropTable($this->tableName);
     foreach ($schema->toSql($this->connection->getDatabasePlatform()) as $sql) {
