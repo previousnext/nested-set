@@ -8,6 +8,7 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\DBAL\Schema\Schema;
 use PNX\NestedSet\Node;
 use PNX\NestedSet\Storage\DbalNestedSet;
+use PNX\NestedSet\Storage\DbalNestedSetSchema;
 
 /**
  * Tests the Dbal Tree implementation.
@@ -38,6 +39,13 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   protected $tableName = 'nested_set';
 
   /**
+   * The nested set schema.
+   *
+   * @var \PNX\NestedSet\Storage\DbalNestedSetSchema
+   */
+  protected $schema;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp() {
@@ -45,7 +53,9 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
       $this->connection = DriverManager::getConnection([
         'url' => 'sqlite:///:memory:',
       ], new Configuration());
-      $this->createTable();
+
+      $this->schema = new DbalNestedSetSchema($this->connection, $this->tableName);
+      $this->schema->createTable();
       $this->loadTestData();
       $this->nestedSet = new DbalNestedSet($this->connection, $this->tableName);
     }
@@ -421,34 +431,6 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    */
   public function testValidateTableInvalidFirstChars() {
     $this->nestedSet = new DbalNestedSet($this->connection, "1abc");
-  }
-
-  /**
-   * Drops the table.
-   */
-  protected function dropTable() {
-    $schema = new Schema();
-    $schema->dropTable("tree");
-    foreach ($schema->toSql($this->connection->getDatabasePlatform()) as $sql) {
-      $this->connection->exec($sql);
-    }
-  }
-
-  /**
-   * Creates the table.
-   */
-  protected function createTable() {
-    $schema = new Schema();
-    $tree = $schema->createTable($this->tableName);
-    $tree->addColumn("id", "integer", ["unsigned" => TRUE]);
-    $tree->addColumn("revision_id", "integer", ["unsigned" => TRUE]);
-    $tree->addColumn("left_pos", "integer", ["unsigned" => TRUE]);
-    $tree->addColumn("right_pos", "integer", ["unsigned" => TRUE]);
-    $tree->addColumn("depth", "integer", ["unsigned" => TRUE]);
-
-    foreach ($schema->toSql($this->connection->getDatabasePlatform()) as $sql) {
-      $this->connection->exec($sql);
-    }
   }
 
   /**
