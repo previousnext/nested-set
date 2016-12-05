@@ -15,7 +15,7 @@ class DbalNestedSet implements NestedSetInterface {
   /**
    * The regex for validating table names.
    */
-  const VALID_TABLE_REGEX = '/^\w{1,64}$/';
+  const VALID_TABLE_REGEX = '/^[a-zA-Z]\w{1,64}$/';
 
   /**
    * The database connection.

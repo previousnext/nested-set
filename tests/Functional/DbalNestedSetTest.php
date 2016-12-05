@@ -397,21 +397,30 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
-   * Test table name validation.
+   * Test table name validation, max length.
    *
    * @expectedException \InvalidArgumentException
    */
   public function testValidateTableNameTooLong() {
-    $this->nestedSet = new DbalNestedSet($this->connection, "dQkujoCFDd4pqpDQxzguEBQBjewdaCpysxLksjkM2nnTDaNQfb{p42dQGZAghhmb1");
+    $this->nestedSet = new DbalNestedSet($this->connection, "");
   }
 
   /**
-   * Test table name validation.
+   * Test table name validation, invalid chars.
    *
    * @expectedException \InvalidArgumentException
    */
   public function testValidateTableInvalidChars() {
     $this->nestedSet = new DbalNestedSet($this->connection, "Robert;)DROP TABLE students;--");
+  }
+
+  /**
+   * Test table name validation, first char.
+   *
+   * @expectedException \InvalidArgumentException
+   */
+  public function testValidateTableInvalidFirstChars() {
+    $this->nestedSet = new DbalNestedSet($this->connection, "1abc");
   }
 
   /**
