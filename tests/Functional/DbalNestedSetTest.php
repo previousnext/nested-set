@@ -49,16 +49,14 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * {@inheritdoc}
    */
   protected function setUp() {
-    if ($this->connection === NULL) {
-      $this->connection = DriverManager::getConnection([
-        'url' => 'sqlite:///:memory:',
-      ], new Configuration());
+    $this->connection = DriverManager::getConnection([
+      'url' => 'sqlite:///:memory:',
+    ], new Configuration());
 
-      $this->schema = new DbalNestedSetSchema($this->connection, $this->tableName);
-      $this->schema->createTable();
-      $this->loadTestData();
-      $this->nestedSet = new DbalNestedSet($this->connection, $this->tableName);
-    }
+    $this->schema = new DbalNestedSetSchema($this->connection, $this->tableName);
+    $this->schema->createTable();
+    $this->loadTestData();
+    $this->nestedSet = new DbalNestedSet($this->connection, $this->tableName);
   }
 
   /**

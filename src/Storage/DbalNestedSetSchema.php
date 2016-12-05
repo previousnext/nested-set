@@ -32,7 +32,7 @@ class DbalNestedSetSchema extends BaseDbalStorage implements NestedSetSchemaInte
    */
   public function dropTable() {
     $schema = new Schema();
-    $schema->dropTable("tree");
+    $schema->dropTable($this->tableName);
     foreach ($schema->toSql($this->connection->getDatabasePlatform()) as $sql) {
       $this->connection->exec($sql);
     }
