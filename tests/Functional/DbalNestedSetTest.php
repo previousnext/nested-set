@@ -31,6 +31,13 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   protected $connection;
 
   /**
+   * The table name.
+   *
+   * @var string
+   */
+  protected $tableName = 'nested_set';
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp() {
@@ -40,7 +47,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
       ], new Configuration());
       $this->createTable();
       $this->loadTestData();
-      $this->nestedSet = new DbalNestedSet($this->connection);
+      $this->nestedSet = new DbalNestedSet($this->connection, $this->tableName);
     }
   }
 
@@ -390,6 +397,24 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
+   * Test table name validation.
+   *
+   * @expectedException \InvalidArgumentException
+   */
+  public function testValidateTableNameTooLong() {
+    $this->nestedSet = new DbalNestedSet($this->connection, "dQkujoCFDd4pqpDQxzguEBQBjewdaCpysxLksjkM2nnTDaNQfb{p42dQGZAghhmb1");
+  }
+
+  /**
+   * Test table name validation.
+   *
+   * @expectedException \InvalidArgumentException
+   */
+  public function testValidateTableInvalidChars() {
+    $this->nestedSet = new DbalNestedSet($this->connection, "Robert;)DROP TABLE students;--");
+  }
+
+  /**
    * Drops the table.
    */
   protected function dropTable() {
@@ -402,17 +427,14 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
 
   /**
    * Creates the table.
-   *
-   * @param string $tableName
-   *   The table name.
    */
-  protected function createTable($tableName = 'tree') {
+  protected function createTable() {
     $schema = new Schema();
-    $tree = $schema->createTable($tableName);
+    $tree = $schema->createTable($this->tableName);
     $tree->addColumn("id", "integer", ["unsigned" => TRUE]);
     $tree->addColumn("revision_id", "integer", ["unsigned" => TRUE]);
-    $tree->addColumn("nested_left", "integer", ["unsigned" => TRUE]);
-    $tree->addColumn("nested_right", "integer", ["unsigned" => TRUE]);
+    $tree->addColumn("left_pos", "integer", ["unsigned" => TRUE]);
+    $tree->addColumn("right_pos", "integer", ["unsigned" => TRUE]);
     $tree->addColumn("depth", "integer", ["unsigned" => TRUE]);
 
     foreach ($schema->toSql($this->connection->getDatabasePlatform()) as $sql) {
@@ -424,92 +446,92 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Loads the test data.
    */
   protected function loadTestData() {
-    $this->connection->insert('tree',
+    $this->connection->insert($this->tableName,
       [
         'id' => 1,
         'revision_id' => 1,
-        'nested_left' => 1,
-        'nested_right' => 22,
+        'left_pos' => 1,
+        'right_pos' => 22,
         'depth' => 0,
       ]);
-    $this->connection->insert('tree',
+    $this->connection->insert($this->tableName,
       [
         'id' => 2,
         'revision_id' => 1,
-        'nested_left' => 2,
-        'nested_right' => 9,
+        'left_pos' => 2,
+        'right_pos' => 9,
         'depth' => 1,
       ]);
-    $this->connection->insert('tree',
+    $this->connection->insert($this->tableName,
       [
         'id' => 3,
         'revision_id' => 1,
-        'nested_left' => 10,
-        'nested_right' => 21,
+        'left_pos' => 10,
+        'right_pos' => 21,
         'depth' => 1,
       ]);
-    $this->connection->insert('tree',
+    $this->connection->insert($this->tableName,
       [
         'id' => 4,
         'revision_id' => 1,
-        'nested_left' => 3,
-        'nested_right' => 8,
+        'left_pos' => 3,
+        'right_pos' => 8,
         'depth' => 2,
       ]);
-    $this->connection->insert('tree',
+    $this->connection->insert($this->tableName,
       [
         'id' => 5,
         'revision_id' => 1,
-        'nested_left' => 4,
-        'nested_right' => 5,
+        'left_pos' => 4,
+        'right_pos' => 5,
         'depth' => 3,
       ]);
-    $this->connection->insert('tree',
+    $this->connection->insert($this->tableName,
       [
         'id' => 6,
         'revision_id' => 1,
-        'nested_left' => 6,
-        'nested_right' => 7,
+        'left_pos' => 6,
+        'right_pos' => 7,
         'depth' => 3,
       ]);
-    $this->connection->insert('tree',
+    $this->connection->insert($this->tableName,
       [
         'id' => 7,
         'revision_id' => 1,
-        'nested_left' => 11,
-        'nested_right' => 16,
+        'left_pos' => 11,
+        'right_pos' => 16,
         'depth' => 2,
       ]);
-    $this->connection->insert('tree',
+    $this->connection->insert($this->tableName,
       [
         'id' => 8,
         'revision_id' => 1,
-        'nested_left' => 17,
-        'nested_right' => 18,
+        'left_pos' => 17,
+        'right_pos' => 18,
         'depth' => 2,
       ]);
-    $this->connection->insert('tree',
+    $this->connection->insert($this->tableName,
       [
         'id' => 9,
         'revision_id' => 1,
-        'nested_left' => 19,
-        'nested_right' => 20,
+        'left_pos' => 19,
+        'right_pos' => 20,
         'depth' => 2,
       ]);
-    $this->connection->insert('tree',
+    $this->connection->insert($this->tableName,
       [
         'id' => 10,
         'revision_id' => 1,
-        'nested_left' => 12,
-        'nested_right' => 13,
+        'left_pos' => 12,
+        'right_pos' => 13,
         'depth' => 3,
       ]);
-    $this->connection->insert('tree',
+    $this->connection->insert($this->tableName,
       [
         'id' => 11,
         'revision_id' => 1,
-        'nested_left' => 14,
-        'nested_right' => 15,
+        'left_pos' => 14,
+        'right_pos' => 15,
         'depth' => 3,
       ]
     );

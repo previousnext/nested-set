@@ -22,8 +22,8 @@ $schema = $sm->createSchema();
 $tree = $schema->createTable("tree");
 $tree->addColumn("id", "integer", ["unsigned" => TRUE]);
 $tree->addColumn("revision_id", "integer", ["unsigned" => TRUE]);
-$tree->addColumn("nested_left", "integer", ["unsigned" => TRUE]);
-$tree->addColumn("nested_right", "integer", ["unsigned" => TRUE]);
+$tree->addColumn("left_pos", "integer", ["unsigned" => TRUE]);
+$tree->addColumn("right_pos", "integer", ["unsigned" => TRUE]);
 
 foreach ($schema->toSql($this->connection->getDatabasePlatform()) as $sql) {
   $this->connection->exec($sql);
