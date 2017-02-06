@@ -484,14 +484,6 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
       ]);
     $this->connection->insert($this->tableName,
       [
-        'id' => 7,
-        'revision_id' => 1,
-        'left_pos' => 11,
-        'right_pos' => 16,
-        'depth' => 2,
-      ]);
-    $this->connection->insert($this->tableName,
-      [
         'id' => 8,
         'revision_id' => 1,
         'left_pos' => 17,
@@ -504,6 +496,14 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
         'revision_id' => 1,
         'left_pos' => 19,
         'right_pos' => 20,
+        'depth' => 2,
+      ]);
+    $this->connection->insert($this->tableName,
+      [
+        'id' => 7,
+        'revision_id' => 1,
+        'left_pos' => 11,
+        'right_pos' => 16,
         'depth' => 2,
       ]);
     $this->connection->insert($this->tableName,
