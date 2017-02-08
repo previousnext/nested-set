@@ -230,6 +230,9 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * {@inheritdoc}
    */
   public function deleteNode(Node $node) {
+    if ($node->getLeft() < 1 || $node->getRight() < 1) {
+      throw new \InvalidArgumentException("Left and right values must be > 0");
+    }
     $left = $node->getLeft();
     $right = $node->getRight();
     $width = $right - $left + 1;

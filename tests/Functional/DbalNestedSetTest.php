@@ -282,6 +282,16 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
+   * Tests deleting a node with missing values.
+   *
+   * @expectedException \InvalidArgumentException
+   */
+  public function testDeleteNodeInvalid() {
+    $node = new Node(1, 1);
+    $this->nestedSet->deleteNode($node);
+  }
+
+  /**
    * Tests deleting a node and its sub-tree.
    */
   public function testDeleteSubTree() {
