@@ -6,6 +6,7 @@ use Console_Table;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
 use PNX\NestedSet\Node;
+use PNX\NestedSet\NodeKey;
 use PNX\NestedSet\Storage\DbalNestedSet;
 use PNX\NestedSet\Storage\DbalNestedSetSchema;
 
@@ -63,9 +64,9 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    */
   public function testFindDescendants() {
 
-    $node = $this->nestedSet->getNode(7, 1);
+    $nodeKey = new NodeKey(7, 1);
 
-    $descendants = $this->nestedSet->findDescendants($node);
+    $descendants = $this->nestedSet->findDescendants($nodeKey);
 
     $this->assertCount(2, $descendants);
 
@@ -92,10 +93,10 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    */
   public function testFindChildren() {
 
-    $node = $this->nestedSet->getNode(3, 1);
+    $nodeKey = new NodeKey(3, 1);
 
     // Limit to 1 level deep to exclude grandchildren.
-    $descendants = $this->nestedSet->findChildren($node);
+    $descendants = $this->nestedSet->findChildren($nodeKey);
 
     $this->assertCount(3, $descendants);
 
@@ -133,9 +134,9 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    */
   public function testFindAncestors() {
 
-    $node = $this->nestedSet->getNode(7, 1);
+    $nodeKey = new NodeKey(7, 1);
 
-    $ancestors = $this->nestedSet->findAncestors($node);
+    $ancestors = $this->nestedSet->findAncestors($nodeKey);
 
     $this->assertCount(3, $ancestors);
 
@@ -162,9 +163,9 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    */
   public function testFindParent() {
 
-    $node = $this->nestedSet->getNode(7, 1);
+    $nodeKey = new NodeKey(7, 1);
 
-    $parent = $this->nestedSet->findParent($node);
+    $parent = $this->nestedSet->findParent($nodeKey);
 
     $this->assertEquals(3, $parent->getId());
     $this->assertEquals(1, $parent->getRevisionId());
@@ -178,19 +179,18 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    */
   public function testInsertNodeBelowWithExistingChildren() {
 
-    $parent = $this->nestedSet->getNode(3, 1);
-    $child = new Node(12, 1);
+    $parentNodeKey = new NodeKey(3, 1);
+    $parent = $this->nestedSet->getNode($parentNodeKey);
+    $childNodeKey = new NodeKey(12, 1);
 
-    $newNode = $this->nestedSet->addNodeBelow($parent, $child);
+    $newNode = $this->nestedSet->addNodeBelow($parent, $childNodeKey);
 
     // Should be inserted in right-most spot.
     $this->assertEquals(21, $newNode->getLeft());
     $this->assertEquals(22, $newNode->getRight());
 
-    $tree = $this->nestedSet->getTree();
-
     // Parent node right should have incremented.
-    $newParent = $this->nestedSet->getNode(3, 1);
+    $newParent = $this->nestedSet->getNode($parentNodeKey);
     $this->assertEquals(10, $newParent->getLeft());
     $this->assertEquals(23, $newParent->getRight());
   }
@@ -199,10 +199,10 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Tests inserting a node below a parent with no children.
    */
   public function testInsertNodeBelowWithNoChildren() {
-    $target = $this->nestedSet->getNode(6, 1);
-    $node = new Node(13, 1);
+    $target = $this->nestedSet->getNode(new NodeKey(6, 1));
+    $nodeKey = new NodeKey(13, 1);
 
-    $newNode = $this->nestedSet->addNodeBelow($target, $node);
+    $newNode = $this->nestedSet->addNodeBelow($target, $nodeKey);
 
     // Should be inserted below 6 with depth 4.
     $this->assertEquals(7, $newNode->getLeft());
@@ -210,7 +210,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(4, $newNode->getDepth());
 
     // Parent node right should have incremented.
-    $newParent = $this->nestedSet->getNode(6, 1);
+    $newParent = $this->nestedSet->getNode(new NodeKey(6, 1));
     $this->assertEquals(6, $newParent->getLeft());
     $this->assertEquals(9, $newParent->getRight());
   }
@@ -219,10 +219,10 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Tests inserting a node before another sibling.
    */
   public function testInsertNodeBefore() {
-    $parent = $this->nestedSet->getNode(6, 1);
-    $child = new Node(14, 1);
+    $parent = $this->nestedSet->getNode(new NodeKey(6, 1));
+    $childNodeKey = new NodeKey(14, 1);
 
-    $newNode = $this->nestedSet->addNodeBefore($parent, $child);
+    $newNode = $this->nestedSet->addNodeBefore($parent, $childNodeKey);
 
     // Should be inserted below 6 with depth 4.
     $this->assertEquals(6, $newNode->getLeft());
@@ -230,7 +230,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(3, $newNode->getDepth());
 
     // Parent node right should have incremented.
-    $newParent = $this->nestedSet->getNode(4, 1);
+    $newParent = $this->nestedSet->getNode(new NodeKey(4, 1));
     $this->assertEquals(3, $newParent->getLeft());
     $this->assertEquals(10, $newParent->getRight());
   }
@@ -239,10 +239,10 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Tests inserting a node after another sibling.
    */
   public function testInsertNodeAfter() {
-    $parent = $this->nestedSet->getNode(5, 1);
-    $child = new Node(15, 1);
+    $parent = $this->nestedSet->getNode(new NodeKey(5, 1));
+    $childNodeKey = new NodeKey(15, 1);
 
-    $newNode = $this->nestedSet->addNodeAfter($parent, $child);
+    $newNode = $this->nestedSet->addNodeAfter($parent, $childNodeKey);
 
     // Should be inserted below 6 with depth 4.
     $this->assertEquals(6, $newNode->getLeft());
@@ -250,7 +250,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(3, $newNode->getDepth());
 
     // Parent node right should have incremented.
-    $newParent = $this->nestedSet->getNode(4, 1);
+    $newParent = $this->nestedSet->getNode(new NodeKey(4, 1));
     $this->assertEquals(3, $newParent->getLeft());
     $this->assertEquals(10, $newParent->getRight());
   }
@@ -259,35 +259,33 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Tests deleting a node.
    */
   public function testDeleteNode() {
-    $node = $this->nestedSet->getNode(4, 1);
+    $nodeKey = new NodeKey(4, 1);
+    $node = $this->nestedSet->getNode($nodeKey);
 
     $this->nestedSet->deleteNode($node);
 
     // Node should be deleted.
-    $node = $this->nestedSet->getNode(4, 1);
+    $node = $this->nestedSet->getNode($nodeKey);
     $this->assertNull($node);
 
     // Children should be moved up.
-    $node = $this->nestedSet->getNode(5, 1);
+    $node = $this->nestedSet->getNode(new NodeKey(5, 1));
     $this->assertEquals(3, $node->getLeft());
     $this->assertEquals(4, $node->getRight());
     $this->assertEquals(2, $node->getDepth());
 
-    $node = $this->nestedSet->getNode(6, 1);
+    $node = $this->nestedSet->getNode(new NodeKey(6, 1));
     $this->assertEquals(5, $node->getLeft());
     $this->assertEquals(6, $node->getRight());
     $this->assertEquals(2, $node->getDepth());
-
-    $tree = $this->nestedSet->getTree();
   }
 
   /**
-   * Tests deleting a node with missing values.
+   * Tests creating a node with missing values.
    */
   public function testDeleteNodeInvalid() {
-    $node = new Node(1, 1);
     $this->setExpectedException(\InvalidArgumentException::class);
-    $this->nestedSet->deleteNode($node);
+    $node = new Node(new NodeKey(1, 1), -1, -1, 0);
   }
 
   /**
@@ -295,19 +293,20 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    */
   public function testDeleteSubTree() {
 
-    $node = $this->nestedSet->getNode(4, 1);
+    $nodeKey = new NodeKey(4, 1);
+    $node = $this->nestedSet->getNode($nodeKey);
 
     $this->nestedSet->deleteSubTree($node);
 
     // Node should be deleted.
-    $node = $this->nestedSet->getNode(4, 1);
+    $node = $this->nestedSet->getNode($nodeKey);
     $this->assertNull($node);
 
     // Children should be deleted.
-    $node = $this->nestedSet->getNode(5, 1);
+    $node = $this->nestedSet->getNode(new NodeKey(5, 1));
     $this->assertNull($node);
 
-    $node = $this->nestedSet->getNode(6, 1);
+    $node = $this->nestedSet->getNode(new NodeKey(6, 1));
     $this->assertNull($node);
   }
 
@@ -316,30 +315,31 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    */
   public function testMoveSubTreeBelow() {
 
-    $parent = $this->nestedSet->getNode(1, 1);
-    $node = $this->nestedSet->getNode(7, 1);
+    $parent = $this->nestedSet->getNode(new NodeKey(1, 1));
+    $nodeKey = new NodeKey(7, 1);
+    $node = $this->nestedSet->getNode($nodeKey);
 
     $this->nestedSet->moveSubTreeBelow($parent, $node);
 
     // Check node is in new position.
-    $node = $this->nestedSet->getNode(7, 1);
+    $node = $this->nestedSet->getNode($nodeKey);
     $this->assertEquals(2, $node->getLeft());
     $this->assertEquals(7, $node->getRight());
     $this->assertEquals(1, $node->getDepth());
 
     // Check children are in new position.
-    $node = $this->nestedSet->getNode(10, 1);
+    $node = $this->nestedSet->getNode(new NodeKey(10, 1));
     $this->assertEquals(3, $node->getLeft());
     $this->assertEquals(4, $node->getRight());
     $this->assertEquals(2, $node->getDepth());
 
-    $node = $this->nestedSet->getNode(11, 1);
+    $node = $this->nestedSet->getNode(new NodeKey(11, 1));
     $this->assertEquals(5, $node->getLeft());
     $this->assertEquals(6, $node->getRight());
     $this->assertEquals(2, $node->getDepth());
 
     // Check old parent is updated.
-    $node = $this->nestedSet->getNode(3, 1);
+    $node = $this->nestedSet->getNode(new NodeKey(3, 1));
     $this->assertEquals(16, $node->getLeft());
     $this->assertEquals(21, $node->getRight());
     $this->assertEquals(1, $node->getDepth());
@@ -351,18 +351,19 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    */
   public function testMoveSubTreeToRoot() {
 
-    $node = $this->nestedSet->getNode(7, 1);
+    $nodeKey = new NodeKey(7, 1);
+    $node = $this->nestedSet->getNode($nodeKey);
 
     $this->nestedSet->moveSubTreeToRoot($node);
 
     // Assert we are at the root now.
-    $newRoot = $this->nestedSet->getNode(7, 1);
+    $newRoot = $this->nestedSet->getNode($nodeKey);
     $this->assertEquals(1, $newRoot->getLeft());
     $this->assertEquals(6, $newRoot->getRight());
     $this->assertEquals(0, $newRoot->getDepth());
 
     // Assert old root has had left and right updated.
-    $oldRoot = $this->nestedSet->getNode(1, 1);
+    $oldRoot = $this->nestedSet->getNode(new NodeKey(1, 1));
     $this->assertEquals(7, $oldRoot->getLeft());
     $this->assertEquals(22, $oldRoot->getRight());
     $this->assertEquals(0, $oldRoot->getDepth());
@@ -374,30 +375,31 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    */
   public function testMoveSubTreeBefore() {
 
-    $target = $this->nestedSet->getNode(4, 1);
-    $node = $this->nestedSet->getNode(7, 1);
+    $target = $this->nestedSet->getNode(new NodeKey(4, 1));
+    $nodeKey = new NodeKey(7, 1);
+    $node = $this->nestedSet->getNode($nodeKey);
 
     $this->nestedSet->moveSubTreeBefore($target, $node);
 
     // Check node is in new position.
-    $node = $this->nestedSet->getNode(7, 1);
+    $node = $this->nestedSet->getNode($nodeKey);
     $this->assertEquals(3, $node->getLeft());
     $this->assertEquals(8, $node->getRight());
     $this->assertEquals(2, $node->getDepth());
 
     // Check children are in new position.
-    $node = $this->nestedSet->getNode(10, 1);
+    $node = $this->nestedSet->getNode(new NodeKey(10, 1));
     $this->assertEquals(4, $node->getLeft());
     $this->assertEquals(5, $node->getRight());
     $this->assertEquals(3, $node->getDepth());
 
-    $node = $this->nestedSet->getNode(11, 1);
+    $node = $this->nestedSet->getNode(new NodeKey(11, 1));
     $this->assertEquals(6, $node->getLeft());
     $this->assertEquals(7, $node->getRight());
     $this->assertEquals(3, $node->getDepth());
 
     // Check old parent is updated.
-    $node = $this->nestedSet->getNode(3, 1);
+    $node = $this->nestedSet->getNode(new NodeKey(3, 1));
     $this->assertEquals(16, $node->getLeft());
     $this->assertEquals(21, $node->getRight());
     $this->assertEquals(1, $node->getDepth());
@@ -409,13 +411,13 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    */
   public function testAddRootNodeWhenEmpty() {
 
-    $rootNode = $this->nestedSet->getNode(1, 1);
+    $rootNode = $this->nestedSet->getNode(new NodeKey(1, 1));
 
     $this->nestedSet->deleteSubTree($rootNode);
 
-    $node = new Node(12, 1);
+    $nodeKey = new NodeKey(12, 1);
 
-    $newNode = $this->nestedSet->addRootNode($node);
+    $newNode = $this->nestedSet->addRootNode($nodeKey);
 
     $this->assertEquals(1, $newNode->getLeft());
     $this->assertEquals(2, $newNode->getRight());
@@ -426,9 +428,9 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Tests inserting a root node to an existing tree.
    */
   public function testAddRootNode() {
-    $node = new Node(12, 1);
+    $nodeKey = new NodeKey(12, 1);
 
-    $newNode = $this->nestedSet->addRootNode($node);
+    $newNode = $this->nestedSet->addRootNode($nodeKey);
 
     $this->assertEquals(23, $newNode->getLeft());
     $this->assertEquals(24, $newNode->getRight());
