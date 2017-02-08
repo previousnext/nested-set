@@ -133,6 +133,14 @@ interface NestedSetInterface {
   public function getNode($id, $revision_id);
 
   /**
+   * Moves a subtree to be a new root of the tree.
+   *
+   * @param \PNX\NestedSet\Node $node
+   *   The node to become the new root node.
+   */
+  public function moveSubTreeToRoot(Node $node);
+
+  /**
    * Moves a node and its sub-tree below the target node.
    *
    * @param Node $target

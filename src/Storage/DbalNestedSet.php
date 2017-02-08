@@ -15,10 +15,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * {@inheritdoc}
    */
   public function addRootNode(Node $node) {
-    $maxRight = $this->connection->fetchColumn('SELECT MAX(right_pos) FROM ' . $this->tableName);
-    if ($maxRight === FALSE) {
-      $maxRight = 0;
-    }
+    $maxRight = $this->findMaxRightPosition();
     return $this->doInsertNode($node->getId(), $node->getRevisionId(), $maxRight + 1, $maxRight + 2, 0);
   }
 
@@ -308,6 +305,14 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
+  public function moveSubTreeToRoot(Node $node) {
+    $root = $this->findRoot($node);
+    $this->moveSubTreeBefore($root, $node);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function moveSubTreeBelow(Node $target, Node $node) {
     $newLeftPosition = $target->getLeft() + 1;
     $this->moveSubTreeToPosition($newLeftPosition, $node);
@@ -399,6 +404,20 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
     if ($result) {
       return new Node($result['id'], $result['revision_id'], $result['left_pos'], $result['right_pos'], $result['depth']);
     }
+  }
+
+  /**
+   * Finds the maximum right position of the tree.
+   *
+   * @return int
+   *   The max right position.
+   */
+  protected function findMaxRightPosition() {
+    $maxRight = $this->connection->fetchColumn('SELECT MAX(right_pos) FROM ' . $this->tableName);
+    if ($maxRight === FALSE) {
+      $maxRight = 0;
+    }
+    return $maxRight;
   }
 
 }
