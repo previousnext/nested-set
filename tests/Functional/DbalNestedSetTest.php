@@ -347,6 +347,29 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
+   * Tests moving a sub-tree to the root.
+   */
+  public function testMoveSubTreeToRoot() {
+
+    $node = $this->nestedSet->getNode(7, 1);
+
+    $this->nestedSet->moveSubTreeToRoot($node);
+
+    // Assert we are at the root now.
+    $newRoot = $this->nestedSet->getNode(7, 1);
+    $this->assertEquals(1, $newRoot->getLeft());
+    $this->assertEquals(6, $newRoot->getRight());
+    $this->assertEquals(0, $newRoot->getDepth());
+
+    // Assert old root has had left and right updated.
+    $oldRoot = $this->nestedSet->getNode(1, 1);
+    $this->assertEquals(7, $oldRoot->getLeft());
+    $this->assertEquals(22, $oldRoot->getRight());
+    $this->assertEquals(0, $oldRoot->getDepth());
+
+  }
+
+  /**
    * Tests moving a sub-tree before a target node.
    */
   public function testMoveSubTreeBefore() {
