@@ -47,7 +47,10 @@ class Node {
    * @param int $depth
    *   The depth.
    */
-  public function __construct(NodeKey $nodeKey, $left, $right, $depth = 0) {
+  public function __construct(NodeKey $nodeKey, $left, $right, $depth) {
+    if ($nodeKey == NULL) {
+      throw new \InvalidArgumentException("Node key cannot be NULL");
+    }
     $this->nodeKey = $nodeKey;
     if ($left < 1) {
       throw new \InvalidArgumentException("Left value must be > 0");
