@@ -283,11 +283,10 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
 
   /**
    * Tests deleting a node with missing values.
-   *
-   * @expectedException \InvalidArgumentException
    */
   public function testDeleteNodeInvalid() {
     $node = new Node(1, 1);
+    $this->setExpectedException(\InvalidArgumentException::class);
     $this->nestedSet->deleteNode($node);
   }
 
@@ -415,28 +414,25 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
 
   /**
    * Test table name validation, max length.
-   *
-   * @expectedException \InvalidArgumentException
    */
   public function testValidateTableNameTooLong() {
+    $this->setExpectedException(\InvalidArgumentException::class);
     $this->nestedSet = new DbalNestedSet($this->connection, "");
   }
 
   /**
    * Test table name validation, invalid chars.
-   *
-   * @expectedException \InvalidArgumentException
    */
   public function testValidateTableInvalidChars() {
+    $this->setExpectedException(\InvalidArgumentException::class);
     $this->nestedSet = new DbalNestedSet($this->connection, "Robert;)DROP TABLE students;--");
   }
 
   /**
    * Test table name validation, first char.
-   *
-   * @expectedException \InvalidArgumentException
    */
   public function testValidateTableInvalidFirstChars() {
+    $this->setExpectedException(\InvalidArgumentException::class);
     $this->nestedSet = new DbalNestedSet($this->connection, "1abc");
   }
 
