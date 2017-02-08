@@ -12,50 +12,50 @@ interface NestedSetInterface {
    *
    * @param \PNX\NestedSet\Node $target
    *   The target node to insert below.
-   * @param \PNX\NestedSet\Node $node
-   *   The node to insert. Only id and revision ID are required.
+   * @param \PNX\NestedSet\NodeKey $nodeKey
+   *   The node to insert.
    *
    * @return \PNX\NestedSet\Node
    *   Returns a new node with position values set.
    */
-  public function addNodeBelow(Node $target, Node $node);
+  public function addNodeBelow(Node $target, NodeKey $nodeKey);
 
   /**
    * Inserts a node before the target node.
    *
    * @param \PNX\NestedSet\Node $target
    *   The target node to insert before.
-   * @param \PNX\NestedSet\Node $node
-   *   The node to insert. Only id and revision ID are required.
+   * @param \PNX\NestedSet\NodeKey $nodeKey
+   *   The node key to insert.
    *
    * @return \PNX\NestedSet\Node
    *   Returns a node with position values set.
    */
-  public function addNodeBefore(Node $target, Node $node);
+  public function addNodeBefore(Node $target, NodeKey $nodeKey);
 
   /**
    * Inserts a node after the target node.
    *
    * @param \PNX\NestedSet\Node $target
    *   The target node to insert after.
-   * @param \PNX\NestedSet\Node $node
-   *   The node to insert. Only id and revision ID are required.
+   * @param \PNX\NestedSet\NodeKey $nodeKey
+   *   The node key to insert.
    *
    * @return \PNX\NestedSet\Node
    *   Returns a node with position values set.
    */
-  public function addNodeAfter(Node $target, Node $node);
+  public function addNodeAfter(Node $target, NodeKey $nodeKey);
 
   /**
    * Inserts a root node.
    *
-   * @param \PNX\NestedSet\Node $node
-   *   The root node.
+   * @param \PNX\NestedSet\NodeKey $nodeKey
+   *   The node key to insert.
    *
    * @return \PNX\NestedSet\Node
    *   A new node with position values set.
    */
-  public function addRootNode(Node $node);
+  public function addRootNode(NodeKey $nodeKey);
 
   /**
    * Deletes a node and moves descendants up a level.
@@ -76,61 +76,59 @@ interface NestedSetInterface {
   /**
    * Finds all descendants of a node.
    *
-   * @param \PNX\NestedSet\Node $node
-   *   The node.
+   * @param \PNX\NestedSet\NodeKey $nodeKey
+   *   The node key to find descendants for.
    * @param int $depth
    *   (optional) A depth limit. Defaults to 0, no limit.
    *
    * @return array
-   *   The nested array of descendants.
+   *    The nested array of descendants.
    */
-  public function findDescendants(Node $node, $depth = 0);
+  public function findDescendants(NodeKey $nodeKey, $depth = 0);
 
   /**
    * Finds all immediate children of a node.
    *
-   * @param \PNX\NestedSet\Node $node
-   *   The node.
+   * @param \PNX\NestedSet\NodeKey $nodeKey
+   *   The node key to find children for.
    *
    * @return array
    *   The children.
    */
-  public function findChildren(Node $node);
+  public function findChildren(NodeKey $nodeKey);
 
   /**
    * Finds all ancestors of a node.
    *
-   * @param \PNX\NestedSet\Node $node
-   *   The node.
+   * @param \PNX\NestedSet\NodeKey $nodeKey
+   *   The node to find ancestors for.
    *
    * @return array
    *   The ancestors.
    */
-  public function findAncestors(Node $node);
+  public function findAncestors(NodeKey $nodeKey);
 
   /**
    * Finds the parent node.
    *
-   * @param \PNX\NestedSet\Node $node
-   *   The node.
+   * @param \PNX\NestedSet\NodeKey $nodeKey
+   *   The node key.
    *
-   * @return Node
+   * @return \PNX\NestedSet\Node
    *   The parent node.
    */
-  public function findParent(Node $node);
+  public function findParent(NodeKey $nodeKey);
 
   /**
    * Gets a node for the ID and Revision ID.
    *
-   * @param int|string $id
-   *   The ID.
-   * @param int|string $revision_id
-   *   The revision ID.
+   * @param NodeKey $nodeKey
+   *   The node key.
    *
    * @return \PNX\NestedSet\Node
-   *   The node.
+   *    The node.
    */
-  public function getNode($id, $revision_id);
+  public function getNode(NodeKey $nodeKey);
 
   /**
    * Moves a subtree to be a new root of the tree.
@@ -188,5 +186,16 @@ interface NestedSetInterface {
    *   The tree.
    */
   public function getTree();
+
+  /**
+   * Finds the root node for this node.
+   *
+   * @param \PNX\NestedSet\NodeKey $nodeKey
+   *   The node key.
+   *
+   * @return \PNX\NestedSet\Node
+   *   The root node.
+   */
+  public function findRoot(NodeKey $nodeKey);
 
 }
