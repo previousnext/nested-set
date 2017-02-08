@@ -54,7 +54,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    *   The new left position.
    * @param int $depth
    *   The new depth.
-   * @param \PNX\NestedSet\Node|\PNX\NestedSet\NodeKey $nodeKey
+   * @param \PNX\NestedSet\NodeKey $nodeKey
    *   The node to insert.
    *
    * @return \PNX\NestedSet\Node
