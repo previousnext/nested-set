@@ -17,7 +17,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    */
   public function addRootNode(NodeKey $nodeKey) {
     $maxRight = $this->findMaxRightPosition();
-    return $this->doInsertNode($nodeKey->getId(), $nodeKey->getRevisionId(), $maxRight + 1, $maxRight + 2, 0);
+    return $this->doInsertNode($nodeKey, $maxRight + 1, $maxRight + 2, 0);
   }
 
   /**
@@ -77,7 +77,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
       );
 
       // Insert the node.
-      $newNode = $this->doInsertNode($nodeKey->getId(), $nodeKey->getRevisionId(), $newLeftPosition, $newLeftPosition + 1, $depth);
+      $newNode = $this->doInsertNode($nodeKey, $newLeftPosition, $newLeftPosition + 1, $depth);
 
       $this->connection->commit();
     }
@@ -92,10 +92,8 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * Inserts a new node by its parameters.
    *
-   * @param int|string $id
-   *   The node ID.
-   * @param int|string $revisionId
-   *   The node revision ID.
+   * @param NodeKey $nodeKey
+   *   The node key.
    * @param int $left
    *   The left position.
    * @param int $right
@@ -106,9 +104,9 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * @return \PNX\NestedSet\Node
    *   The new node.
    */
-  protected function doInsertNode($id, $revisionId, $left, $right, $depth) {
+  protected function doInsertNode(NodeKey $nodeKey, $left, $right, $depth) {
     // Create a new node object to be returned.
-    $newNode = new Node(new NodeKey($id, $revisionId), $left, $right, $depth);
+    $newNode = new Node($nodeKey, $left, $right, $depth);
 
     // Insert the new node.
     $this->connection->insert($this->tableName, [
