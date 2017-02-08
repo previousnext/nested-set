@@ -386,6 +386,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
       $this->connection->executeUpdate('UPDATE ' . $this->tableName . ' SET right_pos = right_pos - ? WHERE right_pos > ?',
         [$width, $node->getRight()]
       );
+      $this->connection->commit();
     }
     catch (Exception $e) {
       $this->connection->rollBack();
