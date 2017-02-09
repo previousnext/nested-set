@@ -392,12 +392,9 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $nodeKey = new NodeKey(7, 1);
     $node = $this->nestedSet->getNode($nodeKey);
 
-    $this->printTree($this->nestedSet->getTree());
     $newRoot = $this->nestedSet->addRootNode(new NodeKey(12, 1));
     $newChild = $this->nestedSet->addNodeBelow($newRoot, new NodeKey(13, 1));
-    $this->printTree($this->nestedSet->getTree());
     $this->nestedSet->moveSubTreeBelow($newChild, $node);
-    $this->printTree($this->nestedSet->getTree());
 
     // Check node is in new position.
     $node = $this->nestedSet->getNode($nodeKey);

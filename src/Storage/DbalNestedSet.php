@@ -308,7 +308,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    */
   public function moveSubTreeBelow(Node $target, Node $node) {
     $newLeftPosition = $target->getLeft() + 1;
-    $this->moveSubTreeToPosition($newLeftPosition, $node);
+    $this->moveSubTreeToPosition($newLeftPosition, $node, $target->getDepth() + 1);
   }
 
   /**
@@ -316,7 +316,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    */
   public function moveSubTreeBefore(Node $target, Node $node) {
     $newLeftPosition = $target->getLeft();
-    $this->moveSubTreeToPosition($newLeftPosition, $node);
+    $this->moveSubTreeToPosition($newLeftPosition, $node, $target->getDepth());
   }
 
   /**
@@ -324,7 +324,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    */
   public function moveSubTreeAfter(Node $target, Node $node) {
     $newLeftPosition = $target->getRight() + 1;
-    $this->moveSubTreeToPosition($newLeftPosition, $node);
+    $this->moveSubTreeToPosition($newLeftPosition, $node, $target->getDepth());
   }
 
   /**
@@ -334,11 +334,13 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    *   The new left position.
    * @param \PNX\NestedSet\Node $node
    *   The node to move.
+   * @param int $newDepth
+   *   Depth of new position.
    *
    * @throws \Exception
    *   If a transaction error occurs.
    */
-  protected function moveSubTreeToPosition($newLeftPosition, Node $node) {
+  protected function moveSubTreeToPosition($newLeftPosition, Node $node, $newDepth) {
     try {
       // Calculate position adjustment variables.
       $width = $node->getRight() - $node->getLeft() + 1;
@@ -348,14 +350,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
       $this->connection->beginTransaction();
 
       // Calculate depth difference.
-      $newNode = $this->getNodeAtPosition($newLeftPosition);
-      if (!$newNode) {
-        // No other children at this position, new depth = 1.
-        $depthDiff = 1 - $node->getDepth();
-      }
-      else {
-        $depthDiff = $newNode->getDepth() - $node->getDepth();
-      }
+      $depthDiff = $newDepth - $node->getDepth();
 
       // Backwards movement must account for new space.
       if ($distance < 0) {
