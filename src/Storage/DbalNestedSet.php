@@ -349,7 +349,13 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
 
       // Calculate depth difference.
       $newNode = $this->getNodeAtPosition($newLeftPosition);
-      $depthDiff = $newNode->getDepth() - $node->getDepth();
+      if (!$newNode) {
+        // No other children at this position, new depth = 1.
+        $depthDiff = 1 - $node->getDepth();
+      }
+      else {
+        $depthDiff = $newNode->getDepth() - $node->getDepth();
+      }
 
       // Backwards movement must account for new space.
       if ($distance < 0) {
