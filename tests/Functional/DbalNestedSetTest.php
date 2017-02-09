@@ -347,6 +347,81 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
+   * Tests moving a sub-tree under a brand new parent node.
+   */
+  public function testMoveSubTreeBelowEndParentNode() {
+
+    $parent = $this->nestedSet->getNode(new NodeKey(1, 1));
+    $nodeKey = new NodeKey(7, 1);
+    $node = $this->nestedSet->getNode($nodeKey);
+
+    $newRoot = $this->nestedSet->addRootNode(new NodeKey(12, 1));
+    $this->nestedSet->moveSubTreeBelow($newRoot, $node);
+
+    // Check node is in new position.
+    $node = $this->nestedSet->getNode($nodeKey);
+    $this->assertEquals(18, $node->getLeft());
+    $this->assertEquals(23, $node->getRight());
+    $this->assertEquals(1, $node->getDepth());
+
+    // Check children are in new position.
+    $node = $this->nestedSet->getNode(new NodeKey(10, 1));
+    $this->assertEquals(19, $node->getLeft());
+    $this->assertEquals(20, $node->getRight());
+    $this->assertEquals(2, $node->getDepth());
+
+    $node = $this->nestedSet->getNode(new NodeKey(11, 1));
+    $this->assertEquals(21, $node->getLeft());
+    $this->assertEquals(22, $node->getRight());
+    $this->assertEquals(2, $node->getDepth());
+
+    // Check old parent is updated.
+    $node = $this->nestedSet->getNode(new NodeKey(3, 1));
+    $this->assertEquals(10, $node->getLeft());
+    $this->assertEquals(15, $node->getRight());
+    $this->assertEquals(1, $node->getDepth());
+
+  }
+
+  /**
+   * Tests moving a sub-tree under a brand new child node.
+   */
+  public function testMoveSubTreeBelowEndChildNode() {
+
+    $parent = $this->nestedSet->getNode(new NodeKey(1, 1));
+    $nodeKey = new NodeKey(7, 1);
+    $node = $this->nestedSet->getNode($nodeKey);
+
+    $newRoot = $this->nestedSet->addRootNode(new NodeKey(12, 1));
+    $newChild = $this->nestedSet->addNodeBelow($newRoot, new NodeKey(13, 1));
+    $this->nestedSet->moveSubTreeBelow($newChild, $node);
+
+    // Check node is in new position.
+    $node = $this->nestedSet->getNode($nodeKey);
+    $this->assertEquals(19, $node->getLeft());
+    $this->assertEquals(24, $node->getRight());
+    $this->assertEquals(2, $node->getDepth());
+
+    // Check children are in new position.
+    $node = $this->nestedSet->getNode(new NodeKey(10, 1));
+    $this->assertEquals(20, $node->getLeft());
+    $this->assertEquals(21, $node->getRight());
+    $this->assertEquals(3, $node->getDepth());
+
+    $node = $this->nestedSet->getNode(new NodeKey(11, 1));
+    $this->assertEquals(22, $node->getLeft());
+    $this->assertEquals(23, $node->getRight());
+    $this->assertEquals(3, $node->getDepth());
+
+    // Check old parent is updated.
+    $node = $this->nestedSet->getNode(new NodeKey(3, 1));
+    $this->assertEquals(10, $node->getLeft());
+    $this->assertEquals(15, $node->getRight());
+    $this->assertEquals(1, $node->getDepth());
+
+  }
+
+  /**
    * Tests moving a sub-tree to the root.
    */
   public function testMoveSubTreeToRoot() {
@@ -459,6 +534,13 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   public function testValidateTableInvalidFirstChars() {
     $this->setExpectedException(\InvalidArgumentException::class);
     $this->nestedSet = new DbalNestedSet($this->connection, "1abc");
+  }
+
+  /**
+   * Test get tree works.
+   */
+  public function testGetTree() {
+    $this->assertCount(11, $this->nestedSet->getTree());
   }
 
   /**
