@@ -211,7 +211,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
     $tree = [];
     $stmt = $this->connection->executeQuery('SELECT id, revision_id, left_pos, right_pos, depth FROM ' . $this->tableName . ' ORDER BY left_pos');
     while ($row = $stmt->fetch()) {
-      $tree[] = new Node($row['id'], $row['revision_id'], $row['left_pos'], $row['right_pos'], $row['depth']);
+      $tree[] = new Node(new NodeKey($row['id'], $row['revision_id']), $row['left_pos'], $row['right_pos'], $row['depth']);
     }
     return $tree;
   }
