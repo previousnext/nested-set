@@ -462,6 +462,13 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
+   * Test get tree works.
+   */
+  public function testGetTree() {
+    $this->assertCount(11, $this->nestedSet->getTree());
+  }
+
+  /**
    * Loads the test data.
    */
   protected function loadTestData() {
