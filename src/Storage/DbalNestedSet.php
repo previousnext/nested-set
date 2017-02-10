@@ -66,6 +66,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   protected function insertNodeAtPostion($newLeftPosition, $depth, NodeKey $nodeKey) {
 
     try {
+      $this->connection->setAutoCommit(FALSE);
       $this->connection->beginTransaction();
 
       // Make space for inserting node.
@@ -84,6 +85,9 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
     catch (Exception $e) {
       $this->connection->rollBack();
       throw $e;
+    }
+    finally {
+      $this->connection->setAutoCommit(TRUE);
     }
     return $newNode;
 
@@ -271,6 +275,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
     $width = $right - $left + 1;
 
     try {
+      $this->connection->setAutoCommit(FALSE);
       $this->connection->beginTransaction();
 
       // Delete the node.
@@ -291,6 +296,9 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
     catch (Exception $e) {
       $this->connection->rollBack();
       throw $e;
+    }
+    finally {
+      $this->connection->setAutoCommit(TRUE);
     }
 
   }
@@ -347,6 +355,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
       $distance = $newLeftPosition - $node->getLeft();
       $tempPos = $node->getLeft();
 
+      $this->connection->setAutoCommit(FALSE);
       $this->connection->beginTransaction();
 
       // Calculate depth difference.
@@ -385,6 +394,9 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
     catch (Exception $e) {
       $this->connection->rollBack();
       throw $e;
+    }
+    finally {
+      $this->connection->setAutoCommit(TRUE);
     }
 
   }
