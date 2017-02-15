@@ -320,29 +320,11 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $node = $this->nestedSet->getNode($nodeKey);
 
     $this->nestedSet->moveSubTreeBelow($parent, $node);
+    $this->assertNodeMovedBelow();
 
-    // Check node is in new position.
-    $node = $this->nestedSet->getNode($nodeKey);
-    $this->assertEquals(2, $node->getLeft());
-    $this->assertEquals(7, $node->getRight());
-    $this->assertEquals(1, $node->getDepth());
-
-    // Check children are in new position.
-    $node = $this->nestedSet->getNode(new NodeKey(10, 1));
-    $this->assertEquals(3, $node->getLeft());
-    $this->assertEquals(4, $node->getRight());
-    $this->assertEquals(2, $node->getDepth());
-
-    $node = $this->nestedSet->getNode(new NodeKey(11, 1));
-    $this->assertEquals(5, $node->getLeft());
-    $this->assertEquals(6, $node->getRight());
-    $this->assertEquals(2, $node->getDepth());
-
-    // Check old parent is updated.
-    $node = $this->nestedSet->getNode(new NodeKey(3, 1));
-    $this->assertEquals(16, $node->getLeft());
-    $this->assertEquals(21, $node->getRight());
-    $this->assertEquals(1, $node->getDepth());
+    $node = $this->nestedSet->getNode(new NodeKey(7, 1));
+    $this->nestedSet->moveSubTreeBelow($parent, $node);
+    $this->assertNodeMovedBelow();
 
   }
 
@@ -455,30 +437,14 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $node = $this->nestedSet->getNode($nodeKey);
 
     $this->nestedSet->moveSubTreeBefore($target, $node);
+    $this->assertNodeMovedBefore();
 
+    $node = $this->nestedSet->getNode(new NodeKey(7, 1));
     // Check node is in new position.
     $node = $this->nestedSet->getNode($nodeKey);
-    $this->assertEquals(3, $node->getLeft());
-    $this->assertEquals(8, $node->getRight());
-    $this->assertEquals(2, $node->getDepth());
 
-    // Check children are in new position.
-    $node = $this->nestedSet->getNode(new NodeKey(10, 1));
-    $this->assertEquals(4, $node->getLeft());
-    $this->assertEquals(5, $node->getRight());
-    $this->assertEquals(3, $node->getDepth());
-
-    $node = $this->nestedSet->getNode(new NodeKey(11, 1));
-    $this->assertEquals(6, $node->getLeft());
-    $this->assertEquals(7, $node->getRight());
-    $this->assertEquals(3, $node->getDepth());
-
-    // Check old parent is updated.
-    $node = $this->nestedSet->getNode(new NodeKey(3, 1));
-    $this->assertEquals(16, $node->getLeft());
-    $this->assertEquals(21, $node->getRight());
-    $this->assertEquals(1, $node->getDepth());
-
+    $this->nestedSet->moveSubTreeBefore($target, $node);
+    $this->assertNodeMovedBefore();
   }
 
   /**
@@ -659,7 +625,63 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
         $node->getDepth(),
       ]);
     }
-    echo $table->getTable();
+    echo PHP_EOL . $table->getTable();
+  }
+
+  /**
+   * Assert node correctly moved below.
+   */
+  protected function assertNodeMovedBelow() {
+    // Check node is in new position.
+    $node = $this->nestedSet->getNode(new NodeKey(7, 1));
+    $this->assertEquals(2, $node->getLeft());
+    $this->assertEquals(7, $node->getRight());
+    $this->assertEquals(1, $node->getDepth());
+
+    // Check children are in new position.
+    $node = $this->nestedSet->getNode(new NodeKey(10, 1));
+    $this->assertEquals(3, $node->getLeft());
+    $this->assertEquals(4, $node->getRight());
+    $this->assertEquals(2, $node->getDepth());
+
+    $node = $this->nestedSet->getNode(new NodeKey(11, 1));
+    $this->assertEquals(5, $node->getLeft());
+    $this->assertEquals(6, $node->getRight());
+    $this->assertEquals(2, $node->getDepth());
+
+    // Check old parent is updated.
+    $node = $this->nestedSet->getNode(new NodeKey(3, 1));
+    $this->assertEquals(16, $node->getLeft());
+    $this->assertEquals(21, $node->getRight());
+    $this->assertEquals(1, $node->getDepth());
+  }
+
+  /**
+   * Assert node correctly moved before.
+   */
+  protected function assertNodeMovedBefore() {
+    // Check node is in new position.
+    $node = $this->nestedSet->getNode(new NodeKey(7, 1));
+    $this->assertEquals(3, $node->getLeft());
+    $this->assertEquals(8, $node->getRight());
+    $this->assertEquals(2, $node->getDepth());
+
+    // Check children are in new position.
+    $node = $this->nestedSet->getNode(new NodeKey(10, 1));
+    $this->assertEquals(4, $node->getLeft());
+    $this->assertEquals(5, $node->getRight());
+    $this->assertEquals(3, $node->getDepth());
+
+    $node = $this->nestedSet->getNode(new NodeKey(11, 1));
+    $this->assertEquals(6, $node->getLeft());
+    $this->assertEquals(7, $node->getRight());
+    $this->assertEquals(3, $node->getDepth());
+
+    // Check old parent is updated.
+    $node = $this->nestedSet->getNode(new NodeKey(3, 1));
+    $this->assertEquals(16, $node->getLeft());
+    $this->assertEquals(21, $node->getRight());
+    $this->assertEquals(1, $node->getDepth());
   }
 
 }
