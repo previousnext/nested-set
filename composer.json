@@ -1,6 +1,6 @@
 {
     "name": "previousnext/nested-set",
-    "description": "A library for working with tree implementations.",
+    "description": "A PHP Doctrine DBAL implementation for Nested Sets.",
     "type": "library",
     "license": "GPL-2.0+",
     "authors": [
