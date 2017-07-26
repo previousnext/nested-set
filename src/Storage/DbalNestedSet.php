@@ -336,6 +336,13 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function swapParent(Node $oldParent, Node $newParent) {
+    // TODO: Implement swapParent() method.
+  }
+
+  /**
    * Moves a subtree to a new position.
    *
    * @param int $newLeftPosition

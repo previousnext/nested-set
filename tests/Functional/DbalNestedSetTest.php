@@ -448,6 +448,22 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
+   * Tests swapping parent node.
+   */
+  public function testSwapParent() {
+
+    $oldParent = $this->nestedSet->getNode(new NodeKey(2, 1));
+    $nodeKey = new NodeKey(7, 1);
+    $newParent = $this->nestedSet->getNode($nodeKey);
+
+    $this->printTree($this->nestedSet->getTree());
+
+    $this->nestedSet->swapParent($oldParent, $newParent);
+
+    $this->printTree($this->nestedSet->getTree());
+  }
+
+  /**
    * Tests inserting a root node to an empty tree.
    */
   public function testAddRootNodeWhenEmpty() {
