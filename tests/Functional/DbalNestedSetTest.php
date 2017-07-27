@@ -482,7 +482,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(3, $node->getDepth());
 
     // Check last child is in correct postion.
-    $node = $this->nestedSet->getNode(new NodeKey(10, 1));
+    $node = $this->nestedSet->getNode(new NodeKey(11, 1));
     $this->assertEquals(10, $node->getLeft());
     $this->assertEquals(11, $node->getRight());
     $this->assertEquals(3, $node->getDepth());

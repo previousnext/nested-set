@@ -85,8 +85,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
     catch (Exception $e) {
       $this->connection->rollBack();
       throw $e;
-    }
-    finally {
+    } finally {
       $this->connection->setAutoCommit(TRUE);
     }
     return $newNode;
@@ -259,8 +258,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
     catch (Exception $e) {
       $this->connection->rollBack();
       throw $e;
-    }
-    finally {
+    } finally {
       $this->connection->setAutoCommit(TRUE);
     }
 
@@ -296,8 +294,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
     catch (Exception $e) {
       $this->connection->rollBack();
       throw $e;
-    }
-    finally {
+    } finally {
       $this->connection->setAutoCommit(TRUE);
     }
 
@@ -341,9 +338,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   public function adoptChildren(Node $oldParent, Node $newParent) {
     $children = $this->findChildren($oldParent->getNodeKey());
     $newLeftPosition = $newParent->getRight();
-    foreach ($children as $child) {
-      $this->moveSubTreeToPosition($newLeftPosition, $child, $newParent->getDepth() + 1);
-    }
+    $this->moveMultipleSubTreesToPosition($newLeftPosition, $children, $newParent->getDepth() + 1);
   }
 
   /**
@@ -360,17 +355,37 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    *   If a transaction error occurs.
    */
   protected function moveSubTreeToPosition($newLeftPosition, Node $node, $newDepth) {
+    $this->moveMultipleSubTreesToPosition($newLeftPosition, [$node], $newDepth);
+  }
+
+  /**
+   * Moves multiple subtrees to a new position.
+   *
+   * @param int $newLeftPosition
+   *   The new left position.
+   * @param \PNX\NestedSet\Node[] $nodes
+   *   The node to move.
+   * @param int $newDepth
+   *   Depth of new position.
+   *
+   * @throws \Exception
+   *   If a transaction error occurs.
+   */
+  protected function moveMultipleSubTreesToPosition($newLeftPosition, array $nodes, $newDepth) {
     try {
+
+      $firstNode = $nodes[0];
+      $lastNode = $nodes[count($nodes) - 1];
       // Calculate position adjustment variables.
-      $width = $node->getRight() - $node->getLeft() + 1;
-      $distance = $newLeftPosition - $node->getLeft();
-      $tempPos = $node->getLeft();
+      $width = $lastNode->getRight() - $firstNode->getLeft() + 1;
+      $distance = $newLeftPosition - $firstNode->getLeft();
+      $tempPos = $firstNode->getLeft();
 
       $this->connection->setAutoCommit(FALSE);
       $this->connection->beginTransaction();
 
       // Calculate depth difference.
-      $depthDiff = $newDepth - $node->getDepth();
+      $depthDiff = $newDepth - $firstNode->getDepth();
 
       // Backwards movement must account for new space.
       if ($distance < 0) {
@@ -394,19 +409,18 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
 
       // Remove old space vacated by subtree.
       $this->connection->executeUpdate('UPDATE ' . $this->tableName . ' SET  left_pos = left_pos - ? WHERE left_pos > ?',
-        [$width, $node->getRight()]
+        [$width, $lastNode->getRight()]
       );
 
       $this->connection->executeUpdate('UPDATE ' . $this->tableName . ' SET right_pos = right_pos - ? WHERE right_pos > ?',
-        [$width, $node->getRight()]
+        [$width, $lastNode->getRight()]
       );
       $this->connection->commit();
     }
     catch (Exception $e) {
       $this->connection->rollBack();
       throw $e;
-    }
-    finally {
+    } finally {
       $this->connection->setAutoCommit(TRUE);
     }
 
