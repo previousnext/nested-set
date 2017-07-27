@@ -364,7 +364,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * @param int $newLeftPosition
    *   The new left position.
    * @param \PNX\NestedSet\Node[] $nodes
-   *   The node to move.
+   *   The nodes to move.
    * @param int $newDepth
    *   Depth of new position.
    *
@@ -374,8 +374,8 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   protected function moveMultipleSubTreesToPosition($newLeftPosition, array $nodes, $newDepth) {
     try {
 
-      $firstNode = $nodes[0];
-      $lastNode = $nodes[count($nodes) - 1];
+      $firstNode = reset($nodes);
+      $lastNode = end($nodes);
       // Calculate position adjustment variables.
       $width = $lastNode->getRight() - $firstNode->getLeft() + 1;
       $distance = $newLeftPosition - $firstNode->getLeft();
