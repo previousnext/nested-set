@@ -176,7 +176,7 @@ interface NestedSetInterface {
    * @param \PNX\NestedSet\Node $newParent
    *   The new parent.
    */
-  public function swapParent(Node $oldParent, Node $newParent);
+  public function adoptChildren(Node $oldParent, Node $newParent);
 
   /**
    * Gets a node at a specified left position.
