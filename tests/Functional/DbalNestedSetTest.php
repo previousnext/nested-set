@@ -448,6 +448,117 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
+   * Tests swapping parent node.
+   */
+  public function testAdoptChildren() {
+
+    $oldParent = $this->nestedSet->getNode(new NodeKey(7, 1));
+    $newParent = $this->nestedSet->getNode(new NodeKey(4, 1));
+
+    $this->nestedSet->adoptChildren($oldParent, $newParent);
+
+    // Check new parent has all children.
+    $node = $this->nestedSet->getNode(new NodeKey(4, 1));
+    $this->assertEquals(3, $node->getLeft());
+    $this->assertEquals(12, $node->getRight());
+    $this->assertEquals(2, $node->getDepth());
+
+    // Check old parent has been updated.
+    $node = $this->nestedSet->getNode(new NodeKey(7, 1));
+    $this->assertEquals(15, $node->getLeft());
+    $this->assertEquals(16, $node->getRight());
+    $this->assertEquals(2, $node->getDepth());
+
+    // Check first child is in correct postion.
+    $node = $this->nestedSet->getNode(new NodeKey(5, 1));
+    $this->assertEquals(4, $node->getLeft());
+    $this->assertEquals(5, $node->getRight());
+    $this->assertEquals(3, $node->getDepth());
+
+    // Check last child is in correct postion.
+    $node = $this->nestedSet->getNode(new NodeKey(11, 1));
+    $this->assertEquals(10, $node->getLeft());
+    $this->assertEquals(11, $node->getRight());
+    $this->assertEquals(3, $node->getDepth());
+  }
+
+  /**
+   * Tests swapping parent node.
+   */
+  public function testAdoptChildrenWithDecendents() {
+
+    $oldParent = $this->nestedSet->getNode(new NodeKey(3, 1));
+    $newParent = $this->nestedSet->getNode(new NodeKey(4, 1));
+
+    $this->nestedSet->adoptChildren($oldParent, $newParent);
+
+    // Check new parent has all children.
+    $node = $this->nestedSet->getNode(new NodeKey(4, 1));
+    $this->assertEquals(3, $node->getLeft());
+    $this->assertEquals(18, $node->getRight());
+    $this->assertEquals(2, $node->getDepth());
+
+    // Check old parent has been updated.
+    $node = $this->nestedSet->getNode(new NodeKey(3, 1));
+    $this->assertEquals(20, $node->getLeft());
+    $this->assertEquals(21, $node->getRight());
+    $this->assertEquals(1, $node->getDepth());
+
+    // Check first child is in correct postion.
+    $node = $this->nestedSet->getNode(new NodeKey(5, 1));
+    $this->assertEquals(4, $node->getLeft());
+    $this->assertEquals(5, $node->getRight());
+    $this->assertEquals(3, $node->getDepth());
+
+    // Check last child is in correct postion.
+    $node = $this->nestedSet->getNode(new NodeKey(9, 1));
+    $this->assertEquals(16, $node->getLeft());
+    $this->assertEquals(17, $node->getRight());
+    $this->assertEquals(3, $node->getDepth());
+  }
+
+  /**
+   * Tests swapping parent node.
+   */
+  public function testAdoptChildrenNoExisting() {
+
+    $oldParent = $this->nestedSet->getNode(new NodeKey(7, 1));
+    $newParent = $this->nestedSet->getNode(new NodeKey(8, 1));
+
+    echo PHP_EOL . "Before:";
+    $this->printTree($this->nestedSet->getTree());
+
+    $this->nestedSet->adoptChildren($oldParent, $newParent);
+
+    echo PHP_EOL . "After:";
+    $this->printTree($this->nestedSet->getTree());
+
+    // Check new parent has all children.
+    $node = $this->nestedSet->getNode(new NodeKey(8, 1));
+    $this->assertEquals(13, $node->getLeft());
+    $this->assertEquals(18, $node->getRight());
+    $this->assertEquals(2, $node->getDepth());
+
+    // Check old parent has been updated.
+    $node = $this->nestedSet->getNode(new NodeKey(7, 1));
+    $this->assertEquals(11, $node->getLeft());
+    $this->assertEquals(12, $node->getRight());
+    $this->assertEquals(2, $node->getDepth());
+
+    // Check first child is in correct position.
+    $node = $this->nestedSet->getNode(new NodeKey(10, 1));
+    $this->assertEquals(14, $node->getLeft());
+    $this->assertEquals(15, $node->getRight());
+    $this->assertEquals(3, $node->getDepth());
+
+    // Check last child is in correct position.
+    $node = $this->nestedSet->getNode(new NodeKey(11, 1));
+    $this->assertEquals(16, $node->getLeft());
+    $this->assertEquals(17, $node->getRight());
+    $this->assertEquals(3, $node->getDepth());
+  }
+
+  /**
    * Tests inserting a root node to an empty tree.
    */
   public function testAddRootNodeWhenEmpty() {

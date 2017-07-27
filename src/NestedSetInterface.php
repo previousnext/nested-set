@@ -169,6 +169,16 @@ interface NestedSetInterface {
   public function moveSubTreeAfter(Node $target, Node $node);
 
   /**
+   * Swaps the parent of a sub-tree to a new parent.
+   *
+   * @param \PNX\NestedSet\Node $oldParent
+   *   The old parent.
+   * @param \PNX\NestedSet\Node $newParent
+   *   The new parent.
+   */
+  public function adoptChildren(Node $oldParent, Node $newParent);
+
+  /**
    * Gets a node at a specified left position.
    *
    * @param int $left
