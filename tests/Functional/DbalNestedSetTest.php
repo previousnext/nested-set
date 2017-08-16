@@ -525,13 +525,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $oldParent = $this->nestedSet->getNode(new NodeKey(7, 1));
     $newParent = $this->nestedSet->getNode(new NodeKey(8, 1));
 
-    echo PHP_EOL . "Before:";
-    $this->printTree($this->nestedSet->getTree());
-
     $this->nestedSet->adoptChildren($oldParent, $newParent);
-
-    echo PHP_EOL . "After:";
-    $this->printTree($this->nestedSet->getTree());
 
     // Check new parent has all children.
     $node = $this->nestedSet->getNode(new NodeKey(8, 1));
