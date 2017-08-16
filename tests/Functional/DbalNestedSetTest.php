@@ -735,8 +735,11 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
 
   /**
    * Assert node correctly moved below.
+   *
+   * @param int $parentOffset
+   *   (optional) Optional offset for old parent.
    */
-  protected function assertNodeMovedBelow() {
+  protected function assertNodeMovedBelow($parentOffset = 0) {
     // Check node is in new position.
     $node = $this->nestedSet->getNode(new NodeKey(7, 1));
     $this->assertEquals(2, $node->getLeft());
@@ -756,7 +759,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
 
     // Check old parent is updated.
     $node = $this->nestedSet->getNode(new NodeKey(3, 1));
-    $this->assertEquals(16, $node->getLeft());
+    $this->assertEquals(16 + $parentOffset, $node->getLeft());
     $this->assertEquals(21, $node->getRight());
     $this->assertEquals(1, $node->getDepth());
   }
@@ -786,6 +789,34 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $node = $this->nestedSet->getNode(new NodeKey(3, 1));
     $this->assertEquals(16, $node->getLeft());
     $this->assertEquals(21, $node->getRight());
+    $this->assertEquals(1, $node->getDepth());
+  }
+
+  /**
+   * Tests moving a sub-tree under a parent node.
+   */
+  public function testSimultaneousMoveSubTreeBelow() {
+    $parent = $this->nestedSet->getNode(new NodeKey(1, 1));
+    $nodeKey = new NodeKey(7, 1);
+    $node = $this->nestedSet->getNode($nodeKey);
+
+    // We are planning to move node 7 below node 1, but at the same time,
+    // let's move node 8 around a bit.
+    $otherNodeKey = new NodeKey(8, 1);
+    $otherNode = $this->nestedSet->getNode($otherNodeKey);
+
+    // Now we move node 8 around.
+    $this->nestedSet->moveSubTreeBelow($parent, $otherNode);
+
+    // And then we move node 7 around, but at this point our Node object has
+    // values for left and right that are stale.
+    $this->nestedSet->moveSubTreeBelow($parent, $node);
+
+    // Check nodes are in the correct positions.
+    $this->assertNodeMovedBelow(2);
+    $node = $this->nestedSet->getNode(new NodeKey(8, 1));
+    $this->assertEquals(8, $node->getLeft());
+    $this->assertEquals(9, $node->getRight());
     $this->assertEquals(1, $node->getDepth());
   }
 
