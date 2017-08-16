@@ -24,6 +24,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * {@inheritdoc}
    */
   public function addNodeBelow(Node $target, NodeKey $nodeKey) {
+    $target = $this->ensureNodeIsFresh($target);
     $newLeftPosition = $target->getRight();
     $depth = $target->getDepth() + 1;
     return $this->insertNodeAtPostion($newLeftPosition, $depth, $nodeKey);
@@ -33,6 +34,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * {@inheritdoc}
    */
   public function addNodeBefore(Node $target, NodeKey $nodeKey) {
+    $target = $this->ensureNodeIsFresh($target);
     $newLeftPosition = $target->getLeft();
     $depth = $target->getDepth();
     return $this->insertNodeAtPostion($newLeftPosition, $depth, $nodeKey);
@@ -42,6 +44,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * {@inheritdoc}
    */
   public function addNodeAfter(Node $target, NodeKey $nodeKey) {
+    $target = $this->ensureNodeIsFresh($target);
     $newLeftPosition = $target->getRight() + 1;
     $depth = $target->getDepth();
     return $this->insertNodeAtPostion($newLeftPosition, $depth, $nodeKey);
@@ -223,6 +226,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * {@inheritdoc}
    */
   public function deleteNode(Node $node) {
+    $node = $this->ensureNodeIsFresh($node);
     if ($node->getLeft() < 1 || $node->getRight() < 1) {
       throw new \InvalidArgumentException("Left and right values must be > 0");
     }
@@ -268,6 +272,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * {@inheritdoc}
    */
   public function deleteSubTree(Node $node) {
+    $node = $this->ensureNodeIsFresh($node);
     $left = $node->getLeft();
     $right = $node->getRight();
     $width = $right - $left + 1;
@@ -312,6 +317,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * {@inheritdoc}
    */
   public function moveSubTreeBelow(Node $target, Node $node) {
+    $target = $this->ensureNodeIsFresh($target);
     $newLeftPosition = $target->getLeft() + 1;
     $this->moveSubTreeToPosition($newLeftPosition, $node, $target->getDepth() + 1);
   }
@@ -320,6 +326,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * {@inheritdoc}
    */
   public function moveSubTreeBefore(Node $target, Node $node) {
+    $target = $this->ensureNodeIsFresh($target);
     $newLeftPosition = $target->getLeft();
     $this->moveSubTreeToPosition($newLeftPosition, $node, $target->getDepth());
   }
@@ -328,6 +335,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * {@inheritdoc}
    */
   public function moveSubTreeAfter(Node $target, Node $node) {
+    $target = $this->ensureNodeIsFresh($target);
     $newLeftPosition = $target->getRight() + 1;
     $this->moveSubTreeToPosition($newLeftPosition, $node, $target->getDepth());
   }
@@ -337,6 +345,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    */
   public function adoptChildren(Node $oldParent, Node $newParent) {
     $children = $this->findChildren($oldParent->getNodeKey());
+    $newParent = $this->ensureNodeIsFresh($newParent);
     $newLeftPosition = $newParent->getRight();
     $this->moveMultipleSubTreesToPosition($newLeftPosition, $children, $newParent->getDepth() + 1);
   }
@@ -374,8 +383,8 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   protected function moveMultipleSubTreesToPosition($newLeftPosition, array $nodes, $newDepth) {
     try {
 
-      $firstNode = reset($nodes);
-      $lastNode = end($nodes);
+      $firstNode = $this->ensureNodeIsFresh(reset($nodes));
+      $lastNode = $this->ensureNodeIsFresh(end($nodes));
       // Calculate position adjustment variables.
       $width = $lastNode->getRight() - $firstNode->getLeft() + 1;
       $distance = $newLeftPosition - $firstNode->getLeft();
@@ -450,6 +459,19 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
       $maxRight = 0;
     }
     return $maxRight;
+  }
+
+  /**
+   * Ensures that any node use in calculations of space is fresh.
+   *
+   * @param \PNX\NestedSet\Node $node
+   *   Node to load.
+   *
+   * @return \PNX\NestedSet\Node
+   *   Fresh node.
+   */
+  protected function ensureNodeIsFresh(Node $node) {
+    return $this->getNode($node->getNodeKey());
   }
 
 }
