@@ -86,7 +86,7 @@ interface NestedSetInterface {
    * @return array
    *   The nested array of descendants.
    */
-  public function findDescendants(NodeKey $nodeKey, $depth = 0, $start = 0);
+  public function findDescendants(NodeKey $nodeKey, $depth = 0, $start = 1);
 
   /**
    * Finds all immediate children of a node.
