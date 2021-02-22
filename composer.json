@@ -39,5 +39,8 @@
             "*": "dist"
         },
         "sort-packages": true
+    },
+    "conflict": {
+        "squizlabs/php_codesniffer": "<3.5.8"
     }
 }
