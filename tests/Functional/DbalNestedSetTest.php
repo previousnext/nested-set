@@ -4,6 +4,7 @@ namespace PNX\NestedSet\Tests\Functional;
 
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
+use PHPUnit\Framework\TestCase;
 use PNX\NestedSet\Node;
 use PNX\NestedSet\NodeKey;
 use PNX\NestedSet\Storage\DbalNestedSet;
@@ -14,7 +15,7 @@ use PNX\NestedSet\Storage\DbalNestedSetSchema;
  *
  * @group tree
  */
-class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
+class DbalNestedSetTest extends TestCase {
 
   /**
    * The nested set under test.
@@ -47,7 +48,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     $this->connection = DriverManager::getConnection([
       'url' => 'sqlite:///:memory:',
     ], new Configuration());
@@ -330,7 +331,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Tests creating a node with missing values.
    */
   public function testDeleteNodeInvalid() {
-    $this->setExpectedException(\InvalidArgumentException::class);
+    $this->expectException(\InvalidArgumentException::class);
     $node = new Node(new NodeKey(1, 1), -1, -1, 0);
   }
 
@@ -633,7 +634,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Test table name validation, max length.
    */
   public function testValidateTableNameTooLong() {
-    $this->setExpectedException(\InvalidArgumentException::class);
+    $this->expectException(\InvalidArgumentException::class);
     $this->nestedSet = new DbalNestedSet($this->connection, "");
   }
 
@@ -641,7 +642,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Test table name validation, invalid chars.
    */
   public function testValidateTableInvalidChars() {
-    $this->setExpectedException(\InvalidArgumentException::class);
+    $this->expectException(\InvalidArgumentException::class);
     $this->nestedSet = new DbalNestedSet($this->connection, "Robert;)DROP TABLE students;--");
   }
 
@@ -649,7 +650,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * Test table name validation, first char.
    */
   public function testValidateTableInvalidFirstChars() {
-    $this->setExpectedException(\InvalidArgumentException::class);
+    $this->expectException(\InvalidArgumentException::class);
     $this->nestedSet = new DbalNestedSet($this->connection, "1abc");
   }
 

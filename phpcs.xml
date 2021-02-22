@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ruleset name="pnx-project">
+  <description>PHP Codesniffer configuration.</description>
+  <file>./src</file>
+  <exclude-pattern>./tests/bootstrap.php</exclude-pattern>
+  <arg name="extensions" value="php"/>
+  <arg name="report" value="full"/>
+  <arg name="colors"/>
+  <arg value="sp"/>
+  <rule ref="Drupal"/>
+  <rule ref="PHPCompatibility"/>
+</ruleset>
