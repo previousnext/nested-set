@@ -89,6 +89,53 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   }
 
   /**
+   * Tests finding descendants at depths
+   */
+  public function testFindDescendantsAtDepths() {
+    $nodeKey = new NodeKey(3, 1);
+
+    // Start of 1 and depth of 1 should emulate findChildren().
+    $descendants = $this->nestedSet->findDescendants($nodeKey, 1, 1);
+    $compare = $this->nestedSet->findChildren($nodeKey);
+    $this->assertCount(3, $descendants);
+    $this->assertCount(count($compare), $descendants);
+    foreach ($descendants as $key => $node) {
+      $this->assertSame($node->getId(), $compare[$key]->getId());
+    }
+
+    // Start of 1 and depth of 2 should emulate findDescendants() with no arguments.
+    $descendants = $this->nestedSet->findDescendants($nodeKey, 2, 1);
+    $compare = $this->nestedSet->findDescendants($nodeKey);
+    $this->assertCount(5, $descendants);
+    $this->assertCount(count($compare), $descendants);
+    foreach ($descendants as $key => $node) {
+      $this->assertSame($node->getId(), $compare[$key]->getId());
+    }
+
+    $nodeKey = new NodeKey(1, 1);
+
+    // Start at depth 2 (two levels below 0) and get 1 deep.
+    $descendants = $this->nestedSet->findDescendants($nodeKey, 1, 2);
+    $this->assertCount(4, $descendants);
+
+    /** @var Node $child1 */
+    $child1 = $descendants[0];
+    $this->assertEquals(4, $child1->getId());
+
+    /** @var Node $child2 */
+    $child2 = $descendants[1];
+    $this->assertEquals(7, $child2->getId());
+
+    /** @var Node $child3 */
+    $child3 = $descendants[2];
+    $this->assertEquals(8, $child3->getId());
+
+    /** @var Node $child4 */
+    $child4 = $descendants[3];
+    $this->assertEquals(9, $child4->getId());
+  }
+
+  /**
    * Tests finding children.
    */
   public function testFindChildren() {
@@ -616,6 +663,24 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
 
   /**
    * Loads the test data.
+   *
+   *                     (1)
+   *                    1 | 22
+   *                      |
+   *             ———————————————————
+   *            (2)               (3)
+   *           2 | 9            10 | 21
+   *             |                 |
+   *             |                 |
+   *     —————————          ————————————————————
+   *    (4)                (7)       (8)      (9)
+   *   3 | 8             11 | 16    17 18    19 20
+   *     |                  |
+   *     |                  |
+   *  ————————         ———————————
+   * (5)    (6)      (10)       (11)
+   * 4 5    6 7     12  13     14  15
+   *
    */
   protected function loadTestData() {
     $this->connection->insert($this->tableName,

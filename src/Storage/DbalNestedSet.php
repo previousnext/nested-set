@@ -129,7 +129,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function findDescendants(NodeKey $nodeKey, $depth = 0) {
+  public function findDescendants(NodeKey $nodeKey, $depth = 0, $start = 1) {
     $descendants = [];
     $query = $this->connection->createQueryBuilder();
     $query->select('child.id', 'child.revision_id', 'child.left_pos', 'child.right_pos', 'child.depth')
@@ -142,9 +142,13 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
       ->orderBy('child.left_pos', 'ASC')
       ->setParameter(':id', $nodeKey->getId())
       ->setParameter(':revision_id', $nodeKey->getRevisionId());
+    if ($start > 0) {
+      $query->andWhere('child.depth >= :start_depth + parent.depth')
+        ->setParameter(':start_depth', $start);
+    }
     if ($depth > 0) {
-      $query->andWhere('child.depth <= parent.depth + :depth')
-        ->setParameter(':depth', $depth);
+      $query->andWhere('child.depth <= :depth + parent.depth')
+        ->setParameter(':depth', $start + $depth - 1);
     }
     $stmt = $query->execute();
     while ($row = $stmt->fetch()) {
