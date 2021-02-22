@@ -13,7 +13,7 @@
     "prefer-stable": true,
     "require": {
         "php": "^7.2 || ^8.0",
-        "doctrine/dbal": "~2.5"
+        "doctrine/dbal": "^2.12.1"
     },
     "require-dev": {
         "ext-pdo_sqlite": "*",
