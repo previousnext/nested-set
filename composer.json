@@ -41,6 +41,6 @@
         "sort-packages": true
     },
     "conflict": {
-        "squizlabs/php_codesniffer": "<3.5.0"
+        "squizlabs/php_codesniffer": "<3.5.5"
     }
 }
