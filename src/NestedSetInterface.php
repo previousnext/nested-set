@@ -10,20 +10,20 @@ interface NestedSetInterface {
   /**
    * Inserts a node below the target node.
    *
-   * @param \PNX\NestedSet\Node $target
+   * @param \PNX\NestedSet\NodeKey $parent
    *   The target node to insert below.
-   * @param \PNX\NestedSet\NodeKey $nodeKey
+   * @param \PNX\NestedSet\NodeKey $child
    *   The node to insert.
    *
    * @return \PNX\NestedSet\Node
    *   Returns a new node with position values set.
    */
-  public function addNodeBelow(Node $target, NodeKey $nodeKey);
+  public function addNodeBelow(NodeKey $parent, NodeKey $child);
 
   /**
    * Inserts a node before the target node.
    *
-   * @param \PNX\NestedSet\Node $target
+   * @param \PNX\NestedSet\NodeKey $targetKey
    *   The target node to insert before.
    * @param \PNX\NestedSet\NodeKey $nodeKey
    *   The node key to insert.
@@ -31,12 +31,12 @@ interface NestedSetInterface {
    * @return \PNX\NestedSet\Node
    *   Returns a node with position values set.
    */
-  public function addNodeBefore(Node $target, NodeKey $nodeKey);
+  public function addNodeBefore(NodeKey $targetKey, NodeKey $nodeKey);
 
   /**
    * Inserts a node after the target node.
    *
-   * @param \PNX\NestedSet\Node $target
+   * @param \PNX\NestedSet\NodeKey $targetKey
    *   The target node to insert after.
    * @param \PNX\NestedSet\NodeKey $nodeKey
    *   The node key to insert.
@@ -44,7 +44,7 @@ interface NestedSetInterface {
    * @return \PNX\NestedSet\Node
    *   Returns a node with position values set.
    */
-  public function addNodeAfter(Node $target, NodeKey $nodeKey);
+  public function addNodeAfter(NodeKey $targetKey, NodeKey $nodeKey);
 
   /**
    * Inserts a root node.
@@ -60,18 +60,18 @@ interface NestedSetInterface {
   /**
    * Deletes a node and moves descendants up a level.
    *
-   * @param \PNX\NestedSet\Node $node
+   * @param \PNX\NestedSet\NodeKey $nodeKey
    *   The node to delete.
    */
-  public function deleteNode(Node $node);
+  public function deleteNode(NodeKey $nodeKey);
 
   /**
    * Deletes a node and all it's descendants.
    *
-   * @param \PNX\NestedSet\Node $node
+   * @param \PNX\NestedSet\NodeKey $nodeKey
    *   The node to delete.
    */
-  public function deleteSubTree(Node $node);
+  public function deleteSubTree(NodeKey $nodeKey);
 
   /**
    * Finds all descendants of a node.
@@ -124,7 +124,7 @@ interface NestedSetInterface {
   /**
    * Gets a node for the ID and Revision ID.
    *
-   * @param NodeKey $nodeKey
+   * @param \PNX\NestedSet\NodeKey $nodeKey
    *   The node key.
    *
    * @return \PNX\NestedSet\Node
@@ -135,50 +135,50 @@ interface NestedSetInterface {
   /**
    * Moves a subtree to be a new root of the tree.
    *
-   * @param \PNX\NestedSet\Node $node
+   * @param \PNX\NestedSet\NodeKey $nodeKey
    *   The node to become the new root node.
    */
-  public function moveSubTreeToRoot(Node $node);
+  public function moveSubTreeToRoot(NodeKey $nodeKey);
 
   /**
    * Moves a node and its sub-tree below the target node.
    *
-   * @param Node $target
+   * @param \PNX\NestedSet\NodeKey $targetKey
    *   The node to move below.
-   * @param \PNX\NestedSet\Node $node
+   * @param \PNX\NestedSet\NodeKey $nodeKey
    *   The node to move.
    */
-  public function moveSubTreeBelow(Node $target, Node $node);
+  public function moveSubTreeBelow(NodeKey $targetKey, NodeKey $nodeKey);
 
   /**
    * Moves a node and its sub-tree before the target node.
    *
-   * @param Node $target
+   * @param \PNX\NestedSet\NodeKey $targetKey
    *   The node to move before.
-   * @param \PNX\NestedSet\Node $node
+   * @param \PNX\NestedSet\NodeKey $nodeKey
    *   The node to move.
    */
-  public function moveSubTreeBefore(Node $target, Node $node);
+  public function moveSubTreeBefore(NodeKey $targetKey, NodeKey $nodeKey);
 
   /**
    * Moves a node and its sub-tree after the target node.
    *
-   * @param Node $target
+   * @param \PNX\NestedSet\NodeKey $targetKey
    *   The node to move after.
-   * @param \PNX\NestedSet\Node $node
+   * @param \PNX\NestedSet\NodeKey $nodeKey
    *   The node to move.
    */
-  public function moveSubTreeAfter(Node $target, Node $node);
+  public function moveSubTreeAfter(NodeKey $targetKey, NodeKey $nodeKey);
 
   /**
    * Swaps the parent of a sub-tree to a new parent.
    *
-   * @param \PNX\NestedSet\Node $oldParent
+   * @param \PNX\NestedSet\NodeKey $oldParentKey
    *   The old parent.
-   * @param \PNX\NestedSet\Node $newParent
+   * @param \PNX\NestedSet\NodeKey $newParentKey
    *   The new parent.
    */
-  public function adoptChildren(Node $oldParent, Node $newParent);
+  public function adoptChildren(NodeKey $oldParentKey, NodeKey $newParentKey);
 
   /**
    * Gets a node at a specified left position.

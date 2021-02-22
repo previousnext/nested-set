@@ -22,18 +22,18 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function addNodeBelow(Node $target, NodeKey $nodeKey) {
-    $target = $this->ensureNodeIsFresh($target);
+  public function addNodeBelow(NodeKey $parentKey, NodeKey $child) {
+    $target = $this->getNode($parentKey);
     $newLeftPosition = $target->getRight();
     $depth = $target->getDepth() + 1;
-    return $this->insertNodeAtPostion($newLeftPosition, $depth, $nodeKey);
+    return $this->insertNodeAtPostion($newLeftPosition, $depth, $child);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function addNodeBefore(Node $target, NodeKey $nodeKey) {
-    $target = $this->ensureNodeIsFresh($target);
+  public function addNodeBefore(NodeKey $targetKey, NodeKey $nodeKey) {
+    $target = $this->getNode($targetKey);
     $newLeftPosition = $target->getLeft();
     $depth = $target->getDepth();
     return $this->insertNodeAtPostion($newLeftPosition, $depth, $nodeKey);
@@ -42,8 +42,8 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function addNodeAfter(Node $target, NodeKey $nodeKey) {
-    $target = $this->ensureNodeIsFresh($target);
+  public function addNodeAfter(NodeKey $targetKeyKey, NodeKey $nodeKey) {
+    $target = $this->getNode($targetKeyKey);
     $newLeftPosition = $target->getRight() + 1;
     $depth = $target->getDepth();
     return $this->insertNodeAtPostion($newLeftPosition, $depth, $nodeKey);
@@ -228,8 +228,8 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function deleteNode(Node $node) {
-    $node = $this->ensureNodeIsFresh($node);
+  public function deleteNode(NodeKey $nodeKey) {
+    $node = $this->getNode($nodeKey);
     if ($node->getLeft() < 1 || $node->getRight() < 1) {
       throw new \InvalidArgumentException("Left and right values must be > 0");
     }
@@ -274,8 +274,8 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function deleteSubTree(Node $node) {
-    $node = $this->ensureNodeIsFresh($node);
+  public function deleteSubTree(NodeKey $nodeKey) {
+    $node = $this->getNode($nodeKey);
     $left = $node->getLeft();
     $right = $node->getRight();
     $width = $right - $left + 1;
@@ -311,16 +311,17 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function moveSubTreeToRoot(Node $node) {
-    $root = $this->findRoot($node->getNodeKey());
-    $this->moveSubTreeBefore($root, $node);
+  public function moveSubTreeToRoot(NodeKey $nodeKey) {
+    $root = $this->findRoot($nodeKey);
+    $this->moveSubTreeBefore($root->getNodeKey(), $nodeKey);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function moveSubTreeBelow(Node $target, Node $node) {
-    $target = $this->ensureNodeIsFresh($target);
+  public function moveSubTreeBelow(NodeKey $targetKey, NodeKey $nodeKey) {
+    $target = $this->getNode($targetKey);
+    $node = $this->getNode($nodeKey);
     $newLeftPosition = $target->getLeft() + 1;
     $this->moveSubTreeToPosition($newLeftPosition, $node, $target->getDepth() + 1);
   }
@@ -328,8 +329,9 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function moveSubTreeBefore(Node $target, Node $node) {
-    $target = $this->ensureNodeIsFresh($target);
+  public function moveSubTreeBefore(NodeKey $targetKey, NodeKey $nodeKey) {
+    $target = $this->getNode($targetKey);
+    $node = $this->getNode($nodeKey);
     $newLeftPosition = $target->getLeft();
     $this->moveSubTreeToPosition($newLeftPosition, $node, $target->getDepth());
   }
@@ -337,8 +339,9 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function moveSubTreeAfter(Node $target, Node $node) {
-    $target = $this->ensureNodeIsFresh($target);
+  public function moveSubTreeAfter(NodeKey $targetKey, NodeKey $nodeKey) {
+    $target = $this->getNode($targetKey);
+    $node = $this->getNode($nodeKey);
     $newLeftPosition = $target->getRight() + 1;
     $this->moveSubTreeToPosition($newLeftPosition, $node, $target->getDepth());
   }
@@ -346,9 +349,9 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function adoptChildren(Node $oldParent, Node $newParent) {
-    $children = $this->findChildren($oldParent->getNodeKey());
-    $newParent = $this->ensureNodeIsFresh($newParent);
+  public function adoptChildren(NodeKey $oldParentKey, NodeKey $newParentKey) {
+    $children = $this->findChildren($oldParentKey);
+    $newParent = $this->getNode($newParentKey);
     $newLeftPosition = $newParent->getRight();
     $this->moveMultipleSubTreesToPosition($newLeftPosition, $children, $newParent->getDepth() + 1);
   }
