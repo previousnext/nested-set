@@ -80,11 +80,13 @@ interface NestedSetInterface {
    *   The node key to find descendants for.
    * @param int $depth
    *   (optional) A depth limit. Defaults to 0, no limit.
+   * @param int $start
+   *   (optional) A starting depth. Default of 1 excludes the node itself.
    *
    * @return array
-   *    The nested array of descendants.
+   *   The nested array of descendants.
    */
-  public function findDescendants(NodeKey $nodeKey, $depth = 0);
+  public function findDescendants(NodeKey $nodeKey, $depth = 0, $start = 1);
 
   /**
    * Finds all immediate children of a node.
@@ -126,7 +128,7 @@ interface NestedSetInterface {
    *   The node key.
    *
    * @return \PNX\NestedSet\Node
-   *    The node.
+   *   The node.
    */
   public function getNode(NodeKey $nodeKey);
 

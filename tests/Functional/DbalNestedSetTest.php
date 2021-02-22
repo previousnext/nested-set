@@ -2,7 +2,6 @@
 
 namespace PNX\NestedSet\Tests\Functional;
 
-use Console_Table;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
 use PNX\NestedSet\Node;
@@ -20,7 +19,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
   /**
    * The nested set under test.
    *
-   * @var DbalNestedSet
+   * @var \PNX\NestedSet\Storage\DbalNestedSet
    */
   protected $nestedSet;
 
@@ -70,7 +69,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
 
     $this->assertCount(2, $descendants);
 
-    /** @var Node $child1 */
+    /** @var \PNX\NestedSet\Node $child1 */
     $child1 = $descendants[0];
 
     $this->assertEquals(10, $child1->getId());
@@ -78,7 +77,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(12, $child1->getLeft());
     $this->assertEquals(13, $child1->getRight());
 
-    /** @var Node $child2 */
+    /** @var \PNX\NestedSet\Node $child2 */
     $child2 = $descendants[1];
 
     $this->assertEquals(11, $child2->getId());
@@ -86,6 +85,53 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(14, $child2->getLeft());
     $this->assertEquals(15, $child2->getRight());
 
+  }
+
+  /**
+   * Tests finding descendants at depths.
+   */
+  public function testFindDescendantsAtDepths() {
+    $nodeKey = new NodeKey(3, 1);
+
+    // Start of 1 and depth of 1 should emulate findChildren().
+    $descendants = $this->nestedSet->findDescendants($nodeKey, 1, 1);
+    $compare = $this->nestedSet->findChildren($nodeKey);
+    $this->assertCount(3, $descendants);
+    $this->assertCount(count($compare), $descendants);
+    foreach ($descendants as $key => $node) {
+      $this->assertSame($node->getId(), $compare[$key]->getId());
+    }
+
+    // Start of 1 and depth of 2 should emulate findDescendants().
+    $descendants = $this->nestedSet->findDescendants($nodeKey, 2, 1);
+    $compare = $this->nestedSet->findDescendants($nodeKey);
+    $this->assertCount(5, $descendants);
+    $this->assertCount(count($compare), $descendants);
+    foreach ($descendants as $key => $node) {
+      $this->assertSame($node->getId(), $compare[$key]->getId());
+    }
+
+    $nodeKey = new NodeKey(1, 1);
+
+    // Start at depth 2 (two levels below 0) and get 1 deep.
+    $descendants = $this->nestedSet->findDescendants($nodeKey, 1, 2);
+    $this->assertCount(4, $descendants);
+
+    /** @var \PNX\NestedSet\Node $child1 */
+    $child1 = $descendants[0];
+    $this->assertEquals(4, $child1->getId());
+
+    /** @var \PNX\NestedSet\Node $child2 */
+    $child2 = $descendants[1];
+    $this->assertEquals(7, $child2->getId());
+
+    /** @var \PNX\NestedSet\Node $child3 */
+    $child3 = $descendants[2];
+    $this->assertEquals(8, $child3->getId());
+
+    /** @var \PNX\NestedSet\Node $child4 */
+    $child4 = $descendants[3];
+    $this->assertEquals(9, $child4->getId());
   }
 
   /**
@@ -100,7 +146,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
 
     $this->assertCount(3, $descendants);
 
-    /** @var Node $child1 */
+    /** @var \PNX\NestedSet\Node $child1 */
     $child1 = $descendants[0];
 
     $this->assertEquals(7, $child1->getId());
@@ -109,7 +155,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(16, $child1->getRight());
     $this->assertEquals(2, $child1->getDepth());
 
-    /** @var Node $child2 */
+    /** @var \PNX\NestedSet\Node $child2 */
     $child2 = $descendants[1];
 
     $this->assertEquals(8, $child2->getId());
@@ -118,7 +164,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(18, $child2->getRight());
     $this->assertEquals(2, $child2->getDepth());
 
-    /** @var Node $child3 */
+    /** @var \PNX\NestedSet\Node $child3 */
     $child3 = $descendants[2];
 
     $this->assertEquals(9, $child3->getId());
@@ -140,7 +186,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
 
     $this->assertCount(3, $ancestors);
 
-    /* @var Node $parent */
+    /** @var \PNX\NestedSet\Node $parent */
     $parent = $ancestors[1];
 
     $this->assertEquals(3, $parent->getId());
@@ -148,7 +194,7 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
     $this->assertEquals(10, $parent->getLeft());
     $this->assertEquals(21, $parent->getRight());
 
-    /* @var Node $grandparent */
+    /** @var \PNX\NestedSet\Node $grandparent */
     $grandparent = $ancestors[0];
 
     $this->assertEquals(1, $grandparent->getId());
@@ -616,6 +662,23 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
 
   /**
    * Loads the test data.
+   *
+   *                     (1)
+   *                    1 | 22
+   *                      |
+   *             ———————————————————
+   *            (2)               (3)
+   *           2 | 9            10 | 21
+   *             |                 |
+   *             |                 |
+   *     —————————          ————————————————————
+   *    (4)                (7)       (8)      (9)
+   *   3 | 8             11 | 16    17 18    19 20
+   *     |                  |
+   *     |                  |
+   *  ————————         ———————————
+   * (5)    (6)      (10)       (11)
+   * 4 5    6 7     12  13     14  15
    */
   protected function loadTestData() {
     $this->connection->insert($this->tableName,
@@ -715,11 +778,11 @@ class DbalNestedSetTest extends \PHPUnit_Framework_TestCase {
    * @param array $tree
    *   The tree to print.
    */
-  public function printTree($tree) {
-    $table = new Console_Table(CONSOLE_TABLE_ALIGN_RIGHT);
+  public function printTree(array $tree) {
+    $table = new \Console_Table(CONSOLE_TABLE_ALIGN_RIGHT);
     $table->setHeaders(['ID', 'Rev', 'Left', 'Right', 'Depth']);
     $table->setAlign(0, CONSOLE_TABLE_ALIGN_LEFT);
-    /** @var Node $node */
+    /** @var \PNX\NestedSet\Node $node */
     foreach ($tree as $node) {
       $indent = str_repeat('-', $node->getDepth());
       $table->addRow([

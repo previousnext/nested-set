@@ -2,7 +2,6 @@
 
 namespace PNX\NestedSet\Storage;
 
-use Exception;
 use PNX\NestedSet\NestedSetInterface;
 use PNX\NestedSet\Node;
 use PNX\NestedSet\NodeKey;
@@ -85,7 +84,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
 
       $this->connection->commit();
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       $this->connection->rollBack();
       throw $e;
     } finally {
@@ -98,7 +97,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * Inserts a new node by its parameters.
    *
-   * @param NodeKey $nodeKey
+   * @param \PNX\NestedSet\NodeKey $nodeKey
    *   The node key.
    * @param int $left
    *   The left position.
@@ -129,7 +128,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function findDescendants(NodeKey $nodeKey, $depth = 0) {
+  public function findDescendants(NodeKey $nodeKey, $depth = 0, $start = 1) {
     $descendants = [];
     $query = $this->connection->createQueryBuilder();
     $query->select('child.id', 'child.revision_id', 'child.left_pos', 'child.right_pos', 'child.depth')
@@ -142,9 +141,13 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
       ->orderBy('child.left_pos', 'ASC')
       ->setParameter(':id', $nodeKey->getId())
       ->setParameter(':revision_id', $nodeKey->getRevisionId());
+    if ($start > 0) {
+      $query->andWhere('child.depth >= :start_depth + parent.depth')
+        ->setParameter(':start_depth', $start);
+    }
     if ($depth > 0) {
-      $query->andWhere('child.depth <= parent.depth + :depth')
-        ->setParameter(':depth', $depth);
+      $query->andWhere('child.depth <= :depth + parent.depth')
+        ->setParameter(':depth', $start + $depth - 1);
     }
     $stmt = $query->execute();
     while ($row = $stmt->fetch()) {
@@ -259,7 +262,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
       $this->connection->commit();
 
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       $this->connection->rollBack();
       throw $e;
     } finally {
@@ -296,7 +299,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
 
       $this->connection->commit();
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       $this->connection->rollBack();
       throw $e;
     } finally {
@@ -426,7 +429,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
       );
       $this->connection->commit();
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       $this->connection->rollBack();
       throw $e;
     } finally {
