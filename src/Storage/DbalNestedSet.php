@@ -2,7 +2,6 @@
 
 namespace PNX\NestedSet\Storage;
 
-use Exception;
 use PNX\NestedSet\NestedSetInterface;
 use PNX\NestedSet\Node;
 use PNX\NestedSet\NodeKey;
@@ -85,7 +84,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
 
       $this->connection->commit();
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       $this->connection->rollBack();
       throw $e;
     } finally {
@@ -98,7 +97,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * Inserts a new node by its parameters.
    *
-   * @param NodeKey $nodeKey
+   * @param \PNX\NestedSet\NodeKey $nodeKey
    *   The node key.
    * @param int $left
    *   The left position.
@@ -263,7 +262,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
       $this->connection->commit();
 
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       $this->connection->rollBack();
       throw $e;
     } finally {
@@ -300,7 +299,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
 
       $this->connection->commit();
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       $this->connection->rollBack();
       throw $e;
     } finally {
@@ -430,7 +429,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
       );
       $this->connection->commit();
     }
-    catch (Exception $e) {
+    catch (\Exception $e) {
       $this->connection->rollBack();
       throw $e;
     } finally {
