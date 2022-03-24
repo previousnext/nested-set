@@ -16,17 +16,15 @@ abstract class BaseDbalStorage {
 
   /**
    * The database connection.
-   *
-   * @var \Doctrine\DBAL\Connection
    */
-  protected $connection;
+  protected Connection $connection;
 
   /**
    * The table name to use for storing the nested set.
    *
    * @var string
    */
-  protected $tableName;
+  protected string $tableName;
 
   /**
    * DbalTree constructor.
@@ -36,7 +34,7 @@ abstract class BaseDbalStorage {
    * @param string $tableName
    *   (optional) The table name to use.
    */
-  public function __construct(Connection $connection, $tableName = 'tree') {
+  public function __construct(Connection $connection, string $tableName = 'tree') {
     $this->connection = $connection;
     if (!$this->validTableName($tableName)) {
       throw new \InvalidArgumentException("Table name must match the regex " . self::VALID_TABLE_REGEX);
@@ -58,7 +56,7 @@ abstract class BaseDbalStorage {
    * @return bool
    *   TRUE if the table name is valid.
    */
-  protected function validTableName($tableName) {
+  protected function validTableName(string $tableName): bool {
     return (bool) preg_match(self::VALID_TABLE_REGEX, $tableName);
   }
 

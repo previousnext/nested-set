@@ -12,14 +12,14 @@ class NodeKey {
    *
    * @var string|int
    */
-  protected $id;
+  protected string|int $id;
 
   /**
    * The revision ID.
    *
    * @var string|int
    */
-  protected $revisionId;
+  protected string|int $revisionId;
 
   /**
    * NodeKey constructor.
@@ -29,7 +29,7 @@ class NodeKey {
    * @param int|string $revisionId
    *   The node revision id.
    */
-  public function __construct($id, $revisionId) {
+  public function __construct(string|int $id, string|int $revisionId) {
     $this->id = $id;
     $this->revisionId = $revisionId;
   }
@@ -40,7 +40,7 @@ class NodeKey {
    * @return int|string
    *   The node id.
    */
-  public function getId() {
+  public function getId(): string|int {
     return $this->id;
   }
 
@@ -50,7 +50,7 @@ class NodeKey {
    * @return int|string
    *   The node revision id.
    */
-  public function getRevisionId() {
+  public function getRevisionId(): string|int {
     return $this->revisionId;
   }
 
