@@ -13,7 +13,7 @@
     "prefer-stable": true,
     "require": {
         "php": "^7.3 || ^8.0",
-        "doctrine/dbal": "^2.12.1"
+        "doctrine/dbal": "^2.12.1||^3.3"
     },
     "require-dev": {
         "ext-pdo_sqlite": "*",
@@ -39,6 +39,10 @@
         "preferred-install": {
             "*": "dist"
         },
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "phpstan/extension-installer": true
+        }
     }
 }
