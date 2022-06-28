@@ -7,32 +7,9 @@ namespace PNX\NestedSet;
  */
 class Node {
 
-  /**
-   * The node key.
-   *
-   * @var NodeKey
-   */
   protected NodeKey $nodeKey;
-
-  /**
-   * The left value.
-   *
-   * @var int
-   */
   protected int $left;
-
-  /**
-   * The right value.
-   *
-   * @var int
-   */
   protected int $right;
-
-  /**
-   * The depth.
-   *
-   * @var int
-   */
   protected int $depth;
 
   /**

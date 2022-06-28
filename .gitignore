@@ -2,3 +2,4 @@
 /vendor/
 *.sqlite
 .phpunit.result.cache
+.idea

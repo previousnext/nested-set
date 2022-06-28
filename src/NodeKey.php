@@ -7,18 +7,7 @@ namespace PNX\NestedSet;
  */
 class NodeKey {
 
-  /**
-   * The node ID.
-   *
-   * @var string|int
-   */
   protected string|int $id;
-
-  /**
-   * The revision ID.
-   *
-   * @var string|int
-   */
   protected string|int $revisionId;
 
   /**
