@@ -1,10 +1,10 @@
 version: 2.1
 
 executors:
-  php74:
-    docker:
-      - image: skpr/php-cli:7.4-1.x
   php80:
+    docker:
+      - image: skpr/php-cli:8.0-1.x
+  php81:
     docker:
       - image: skpr/php-cli:8.0-1.x
 
