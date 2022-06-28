@@ -16,6 +16,8 @@ abstract class BaseDbalStorage {
 
   /**
    * The database connection.
+   *
+   * @var \Doctrine\DBAL\Connection
    */
   protected Connection $connection;
 
