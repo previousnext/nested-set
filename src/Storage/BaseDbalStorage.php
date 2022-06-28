@@ -14,18 +14,7 @@ abstract class BaseDbalStorage {
    */
   const VALID_TABLE_REGEX = '/^[a-zA-Z]\w{1,64}$/';
 
-  /**
-   * The database connection.
-   *
-   * @var \Doctrine\DBAL\Connection
-   */
   protected Connection $connection;
-
-  /**
-   * The table name to use for storing the nested set.
-   *
-   * @var string
-   */
   protected string $tableName;
 
   /**
