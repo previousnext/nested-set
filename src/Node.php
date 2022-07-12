@@ -7,33 +7,10 @@ namespace PNX\NestedSet;
  */
 class Node {
 
-  /**
-   * The node key.
-   *
-   * @var NodeKey
-   */
-  protected $nodeKey;
-
-  /**
-   * The left value.
-   *
-   * @var int
-   */
-  protected $left;
-
-  /**
-   * The right value.
-   *
-   * @var int
-   */
-  protected $right;
-
-  /**
-   * The depth.
-   *
-   * @var int
-   */
-  protected $depth;
+  protected NodeKey $nodeKey;
+  protected int $left;
+  protected int $right;
+  protected int $depth;
 
   /**
    * Node constructor.
@@ -47,7 +24,7 @@ class Node {
    * @param int $depth
    *   The depth.
    */
-  public function __construct(NodeKey $nodeKey, $left, $right, $depth) {
+  public function __construct(NodeKey $nodeKey, int $left, int $right, int $depth) {
     if ($nodeKey == NULL) {
       throw new \InvalidArgumentException("Node key cannot be NULL");
     }
@@ -72,7 +49,7 @@ class Node {
    * @return int|string
    *   The ID.
    */
-  public function getId() {
+  public function getId(): int|string {
     return $this->nodeKey->getId();
   }
 
@@ -82,7 +59,7 @@ class Node {
    * @return int|string
    *   The revision ID.
    */
-  public function getRevisionId() {
+  public function getRevisionId(): int|string {
     return $this->nodeKey->getRevisionId();
   }
 
@@ -92,7 +69,7 @@ class Node {
    * @return \PNX\NestedSet\NodeKey
    *   The node key.
    */
-  public function getNodeKey() {
+  public function getNodeKey(): NodeKey {
     return $this->nodeKey;
   }
 
@@ -102,7 +79,7 @@ class Node {
    * @return int
    *   The left value.
    */
-  public function getLeft() {
+  public function getLeft(): int {
     return $this->left;
   }
 
@@ -112,7 +89,7 @@ class Node {
    * @return int
    *   The right value.
    */
-  public function getRight() {
+  public function getRight(): int {
     return $this->right;
   }
 
@@ -122,7 +99,7 @@ class Node {
    * @return int
    *   The depth.
    */
-  public function getDepth() {
+  public function getDepth(): int {
     return $this->depth;
   }
 

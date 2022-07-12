@@ -2,6 +2,7 @@
 
 namespace PNX\NestedSet\Storage;
 
+use Doctrine\DBAL\Driver\Result;
 use PNX\NestedSet\NestedSetInterface;
 use PNX\NestedSet\Node;
 use PNX\NestedSet\NodeKey;
@@ -14,7 +15,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function addRootNode(NodeKey $nodeKey) {
+  public function addRootNode(NodeKey $nodeKey): Node {
     $maxRight = $this->findMaxRightPosition();
     return $this->doInsertNode($nodeKey, $maxRight + 1, $maxRight + 2, 0);
   }
@@ -22,7 +23,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function addNodeBelow(Node $target, NodeKey $nodeKey) {
+  public function addNodeBelow(Node $target, NodeKey $nodeKey): Node {
     $target = $this->ensureNodeIsFresh($target);
     $newLeftPosition = $target->getRight();
     $depth = $target->getDepth() + 1;
@@ -32,7 +33,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function addNodeBefore(Node $target, NodeKey $nodeKey) {
+  public function addNodeBefore(Node $target, NodeKey $nodeKey): Node {
     $target = $this->ensureNodeIsFresh($target);
     $newLeftPosition = $target->getLeft();
     $depth = $target->getDepth();
@@ -42,7 +43,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function addNodeAfter(Node $target, NodeKey $nodeKey) {
+  public function addNodeAfter(Node $target, NodeKey $nodeKey): Node {
     $target = $this->ensureNodeIsFresh($target);
     $newLeftPosition = $target->getRight() + 1;
     $depth = $target->getDepth();
@@ -65,17 +66,17 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * @throws \Exception
    *   If a transaction error occurs.
    */
-  protected function insertNodeAtPostion($newLeftPosition, $depth, NodeKey $nodeKey) {
+  protected function insertNodeAtPostion(int $newLeftPosition, int $depth, NodeKey $nodeKey): Node {
 
     try {
       $this->connection->setAutoCommit(FALSE);
       $this->connection->beginTransaction();
 
       // Make space for inserting node.
-      $this->connection->executeUpdate('UPDATE ' . $this->tableName . ' SET right_pos = right_pos + 2 WHERE right_pos >= ?',
+      $this->connection->executeStatement('UPDATE ' . $this->tableName . ' SET right_pos = right_pos + 2 WHERE right_pos >= ?',
         [$newLeftPosition]
       );
-      $this->connection->executeUpdate('UPDATE ' . $this->tableName . ' SET left_pos = left_pos + 2  WHERE left_pos >= ?',
+      $this->connection->executeStatement('UPDATE ' . $this->tableName . ' SET left_pos = left_pos + 2  WHERE left_pos >= ?',
         [$newLeftPosition]
       );
 
@@ -109,7 +110,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * @return \PNX\NestedSet\Node
    *   The new node.
    */
-  protected function doInsertNode(NodeKey $nodeKey, $left, $right, $depth) {
+  protected function doInsertNode(NodeKey $nodeKey, int $left, int $right, int $depth): Node {
     // Create a new node object to be returned.
     $newNode = new Node($nodeKey, $left, $right, $depth);
 
@@ -128,7 +129,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function findDescendants(NodeKey $nodeKey, $depth = 0, $start = 1) {
+  public function findDescendants(NodeKey $nodeKey, int $depth = 0, int $start = 1): array {
     $descendants = [];
     $query = $this->connection->createQueryBuilder();
     $query->select('child.id', 'child.revision_id', 'child.left_pos', 'child.right_pos', 'child.depth')
@@ -150,7 +151,8 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
         ->setParameter(':depth', $start + $depth - 1);
     }
     $stmt = $query->execute();
-    while ($row = $stmt->fetch()) {
+    assert($stmt instanceof Result);
+    while ($row = $stmt->fetchAssociative()) {
       $descendants[] = new Node(new NodeKey($row['id'], $row['revision_id']), $row['left_pos'], $row['right_pos'], $row['depth']);
     }
     return $descendants;
@@ -159,7 +161,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function findChildren(NodeKey $nodeKey) {
+  public function findChildren(NodeKey $nodeKey): array {
     // Only find descendants one level deep.
     return $this->findDescendants($nodeKey, 1);
   }
@@ -167,24 +169,26 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function getNode(NodeKey $nodeKey) {
-    $result = $this->connection->fetchAssoc("SELECT id, revision_id, left_pos, right_pos, depth FROM " . $this->tableName . " WHERE id = ? AND revision_id = ?",
+  public function getNode(NodeKey $nodeKey): ?Node {
+    $result = $this->connection->fetchAssociative("SELECT id, revision_id, left_pos, right_pos, depth FROM " . $this->tableName . " WHERE id = ? AND revision_id = ?",
       [$nodeKey->getId(), $nodeKey->getRevisionId()]
     );
     if ($result) {
       return new Node($nodeKey, $result['left_pos'], $result['right_pos'], $result['depth']);
     }
+    return NULL;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function findAncestors(NodeKey $nodeKey) {
+  public function findAncestors(NodeKey $nodeKey): array {
     $ancestors = [];
     $stmt = $this->connection->executeQuery('SELECT parent.id, parent.revision_id, parent.left_pos, parent.right_pos, parent.depth FROM ' . $this->tableName . ' AS child, ' . $this->tableName . ' AS parent WHERE child.left_pos BETWEEN parent.left_pos AND parent.right_pos AND child.id = ? AND child.revision_id = ? ORDER BY parent.left_pos',
       [$nodeKey->getId(), $nodeKey->getRevisionId()]
     );
-    while ($row = $stmt->fetch()) {
+    assert($stmt instanceof Result);
+    while ($row = $stmt->fetchAssociative()) {
       $ancestors[] = new Node(new NodeKey($row['id'], $row['revision_id']), $row['left_pos'], $row['right_pos'], $row['depth']);
     }
     return $ancestors;
@@ -193,7 +197,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function findRoot(NodeKey $nodeKey) {
+  public function findRoot(NodeKey $nodeKey): ?Node {
     $ancestors = $this->findAncestors($nodeKey);
     if (!empty($ancestors)) {
       return array_shift($ancestors);
@@ -204,7 +208,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function findParent(NodeKey $nodeKey) {
+  public function findParent(NodeKey $nodeKey): ?Node {
     $ancestors = $this->findAncestors($nodeKey);
     if (count($ancestors) > 1) {
       // Parent is 2nd-last element.
@@ -216,10 +220,11 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function getTree() {
+  public function getTree(): array {
     $tree = [];
     $stmt = $this->connection->executeQuery('SELECT id, revision_id, left_pos, right_pos, depth FROM ' . $this->tableName . ' ORDER BY left_pos');
-    while ($row = $stmt->fetch()) {
+    assert($stmt instanceof Result);
+    while ($row = $stmt->fetchAssociative()) {
       $tree[] = new Node(new NodeKey($row['id'], $row['revision_id']), $row['left_pos'], $row['right_pos'], $row['depth']);
     }
     return $tree;
@@ -228,34 +233,33 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function deleteNode(Node $node) {
+  public function deleteNode(Node $node): void {
     $node = $this->ensureNodeIsFresh($node);
     if ($node->getLeft() < 1 || $node->getRight() < 1) {
       throw new \InvalidArgumentException("Left and right values must be > 0");
     }
     $left = $node->getLeft();
     $right = $node->getRight();
-    $width = $right - $left + 1;
 
     try {
       $this->connection->setAutoCommit(FALSE);
       $this->connection->beginTransaction();
 
       // Delete the node.
-      $this->connection->executeUpdate('DELETE FROM ' . $this->tableName . ' WHERE left_pos = ?',
+      $this->connection->executeStatement('DELETE FROM ' . $this->tableName . ' WHERE left_pos = ?',
         [$left]
       );
 
       // Move children up a level.
-      $this->connection->executeUpdate('UPDATE ' . $this->tableName . ' SET right_pos = right_pos - 1, left_pos = left_pos - 1, depth = depth -1 WHERE left_pos BETWEEN ? AND ?',
+      $this->connection->executeStatement('UPDATE ' . $this->tableName . ' SET right_pos = right_pos - 1, left_pos = left_pos - 1, depth = depth -1 WHERE left_pos BETWEEN ? AND ?',
         [$left, $right]
       );
 
       // Move everything back two places.
-      $this->connection->executeUpdate('UPDATE ' . $this->tableName . ' SET right_pos = right_pos - 2 WHERE right_pos > ?',
+      $this->connection->executeStatement('UPDATE ' . $this->tableName . ' SET right_pos = right_pos - 2 WHERE right_pos > ?',
         [$right]
       );
-      $this->connection->executeUpdate('UPDATE ' . $this->tableName . ' SET left_pos = left_pos - 2 WHERE left_pos > ?',
+      $this->connection->executeStatement('UPDATE ' . $this->tableName . ' SET left_pos = left_pos - 2 WHERE left_pos > ?',
         [$right]
       );
 
@@ -274,7 +278,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function deleteSubTree(Node $node) {
+  public function deleteSubTree(Node $node): void {
     $node = $this->ensureNodeIsFresh($node);
     $left = $node->getLeft();
     $right = $node->getRight();
@@ -285,15 +289,15 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
       $this->connection->beginTransaction();
 
       // Delete the node.
-      $this->connection->executeUpdate('DELETE FROM ' . $this->tableName . ' WHERE left_pos BETWEEN ? AND ?',
+      $this->connection->executeStatement('DELETE FROM ' . $this->tableName . ' WHERE left_pos BETWEEN ? AND ?',
         [$left, $right]
       );
 
       // Move everything back two places.
-      $this->connection->executeUpdate('UPDATE ' . $this->tableName . ' SET right_pos = right_pos - ? WHERE right_pos > ?',
+      $this->connection->executeStatement('UPDATE ' . $this->tableName . ' SET right_pos = right_pos - ? WHERE right_pos > ?',
         [$width, $right]
       );
-      $this->connection->executeUpdate('UPDATE ' . $this->tableName . ' SET left_pos = left_pos - ?  WHERE left_pos > ?',
+      $this->connection->executeStatement('UPDATE ' . $this->tableName . ' SET left_pos = left_pos - ?  WHERE left_pos > ?',
         [$width, $right]
       );
 
@@ -311,7 +315,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function moveSubTreeToRoot(Node $node) {
+  public function moveSubTreeToRoot(Node $node): void {
     $root = $this->findRoot($node->getNodeKey());
     $this->moveSubTreeBefore($root, $node);
   }
@@ -319,7 +323,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function moveSubTreeBelow(Node $target, Node $node) {
+  public function moveSubTreeBelow(Node $target, Node $node): void {
     $target = $this->ensureNodeIsFresh($target);
     $newLeftPosition = $target->getLeft() + 1;
     $this->moveSubTreeToPosition($newLeftPosition, $node, $target->getDepth() + 1);
@@ -328,7 +332,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function moveSubTreeBefore(Node $target, Node $node) {
+  public function moveSubTreeBefore(Node $target, Node $node): void {
     $target = $this->ensureNodeIsFresh($target);
     $newLeftPosition = $target->getLeft();
     $this->moveSubTreeToPosition($newLeftPosition, $node, $target->getDepth());
@@ -337,7 +341,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function moveSubTreeAfter(Node $target, Node $node) {
+  public function moveSubTreeAfter(Node $target, Node $node): void {
     $target = $this->ensureNodeIsFresh($target);
     $newLeftPosition = $target->getRight() + 1;
     $this->moveSubTreeToPosition($newLeftPosition, $node, $target->getDepth());
@@ -346,7 +350,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function adoptChildren(Node $oldParent, Node $newParent) {
+  public function adoptChildren(Node $oldParent, Node $newParent): void {
     $children = $this->findChildren($oldParent->getNodeKey());
     $newParent = $this->ensureNodeIsFresh($newParent);
     $newLeftPosition = $newParent->getRight();
@@ -366,7 +370,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * @throws \Exception
    *   If a transaction error occurs.
    */
-  protected function moveSubTreeToPosition($newLeftPosition, Node $node, $newDepth) {
+  protected function moveSubTreeToPosition(int $newLeftPosition, Node $node, int $newDepth): void {
     $this->moveMultipleSubTreesToPosition($newLeftPosition, [$node], $newDepth);
   }
 
@@ -383,7 +387,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * @throws \Exception
    *   If a transaction error occurs.
    */
-  protected function moveMultipleSubTreesToPosition($newLeftPosition, array $nodes, $newDepth) {
+  protected function moveMultipleSubTreesToPosition(int $newLeftPosition, array $nodes, int $newDepth): void {
     try {
 
       $firstNode = $this->ensureNodeIsFresh(reset($nodes));
@@ -406,25 +410,25 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
       }
 
       // Create new space for subtree.
-      $this->connection->executeUpdate('UPDATE ' . $this->tableName . ' SET left_pos = left_pos + ? WHERE left_pos >= ?',
+      $this->connection->executeStatement('UPDATE ' . $this->tableName . ' SET left_pos = left_pos + ? WHERE left_pos >= ?',
         [$width, $newLeftPosition]
       );
 
-      $this->connection->executeUpdate('UPDATE ' . $this->tableName . ' SET right_pos = right_pos + ? WHERE right_pos >= ?',
+      $this->connection->executeStatement('UPDATE ' . $this->tableName . ' SET right_pos = right_pos + ? WHERE right_pos >= ?',
         [$width, $newLeftPosition]
       );
 
       // Move subtree into new space.
-      $this->connection->executeUpdate('UPDATE ' . $this->tableName . ' SET left_pos = left_pos + ?, right_pos = right_pos + ?, depth = depth + ? WHERE left_pos >= ? AND right_pos < ?',
+      $this->connection->executeStatement('UPDATE ' . $this->tableName . ' SET left_pos = left_pos + ?, right_pos = right_pos + ?, depth = depth + ? WHERE left_pos >= ? AND right_pos < ?',
         [$distance, $distance, $depthDiff, $tempPos, $tempPos + $width]
       );
 
       // Remove old space vacated by subtree.
-      $this->connection->executeUpdate('UPDATE ' . $this->tableName . ' SET  left_pos = left_pos - ? WHERE left_pos > ?',
+      $this->connection->executeStatement('UPDATE ' . $this->tableName . ' SET  left_pos = left_pos - ? WHERE left_pos > ?',
         [$width, $lastNode->getRight()]
       );
 
-      $this->connection->executeUpdate('UPDATE ' . $this->tableName . ' SET right_pos = right_pos - ? WHERE right_pos > ?',
+      $this->connection->executeStatement('UPDATE ' . $this->tableName . ' SET right_pos = right_pos - ? WHERE right_pos > ?',
         [$width, $lastNode->getRight()]
       );
       $this->connection->commit();
@@ -441,13 +445,14 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   /**
    * {@inheritdoc}
    */
-  public function getNodeAtPosition($left) {
-    $result = $this->connection->fetchAssoc("SELECT id, revision_id, left_pos, right_pos, depth FROM " . $this->tableName . " WHERE left_pos = ?",
+  public function getNodeAtPosition(int $left): ?Node {
+    $result = $this->connection->fetchAssociative("SELECT id, revision_id, left_pos, right_pos, depth FROM " . $this->tableName . " WHERE left_pos = ?",
       [$left]
     );
     if ($result) {
       return new Node(new NodeKey($result['id'], $result['revision_id']), $result['left_pos'], $result['right_pos'], $result['depth']);
     }
+    return NULL;
   }
 
   /**
@@ -456,9 +461,9 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * @return int
    *   The max right position.
    */
-  protected function findMaxRightPosition() {
-    $maxRight = $this->connection->fetchColumn('SELECT MAX(right_pos) FROM ' . $this->tableName);
-    if ($maxRight === FALSE) {
+  protected function findMaxRightPosition(): int {
+    $maxRight = $this->connection->fetchOne('SELECT MAX(right_pos) FROM ' . $this->tableName);
+    if ($maxRight === NULL) {
       $maxRight = 0;
     }
     return $maxRight;
@@ -473,7 +478,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * @return \PNX\NestedSet\Node
    *   Fresh node.
    */
-  protected function ensureNodeIsFresh(Node $node) {
+  protected function ensureNodeIsFresh(Node $node): ?Node {
     return $this->getNode($node->getNodeKey());
   }
 
