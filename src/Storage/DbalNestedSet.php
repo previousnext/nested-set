@@ -150,7 +150,15 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
       $query->andWhere('child.depth <= :depth + parent.depth')
         ->setParameter(':depth', $start + $depth - 1);
     }
-    $stmt = $query->executeQuery();
+    if (method_exists($query, 'executeQuery')) {
+      $stmt = $query->executeQuery();
+    }
+    else {
+      // 2.x BC shim.
+      // @phpstan-ignore-next-line
+      $stmt = $query->execute();
+    }
+    assert($stmt instanceof Result);
     while ($row = $stmt->fetchAssociative()) {
       $descendants[] = new Node(new NodeKey($row['id'], $row['revision_id']), $row['left_pos'], $row['right_pos'], $row['depth']);
     }
