@@ -16,7 +16,6 @@ workflows:
             parameters:
               php: ["php80", "php81"]
               composer-opts: ["", "--prefer-lowest"]
-              doctrine-version: ["^2", "^3"]
 
 jobs:
   build:
@@ -25,14 +24,11 @@ jobs:
         type: executor
       composer-opts:
         type: string
-      doctrine-version:
-        type: string
     executor: << parameters.php >>
     working_directory: /data
     steps:
       - checkout
       - run: composer2 update --prefer-dist --no-progress --no-suggest --no-interaction --optimize-autoloader << parameters.composer-opts >>
-      - run: composer2 require "doctrine/dbal:<< parameters.doctrine-version >>"
       - run: ./bin/phpcs --colors --report=full --runtime-set testVersion 8.0-
       - run: php -d memory_limit=-1 ./bin/phpstan analyze --no-progress
       - run: mkdir -p build/phpunit
