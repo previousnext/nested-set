@@ -209,15 +209,40 @@ class DbalNestedSetTest extends TestCase {
    * Tests finding the parent node.
    */
   public function testFindParent() {
+    // Node 2 is child of Node 1 (root).
+    $nodeKey = new NodeKey(2, 1);
+    $parent = $this->nestedSet->findParent($nodeKey);
 
+    $this->assertEquals(1, $parent->getId());
+    $this->assertEquals(1, $parent->getRevisionId());
+    $this->assertEquals(1, $parent->getLeft());
+    $this->assertEquals(22, $parent->getRight());
+    $this->assertEquals(0, $parent->getDepth());
+
+    // Node 7 is child of Node 3.
     $nodeKey = new NodeKey(7, 1);
-
     $parent = $this->nestedSet->findParent($nodeKey);
 
     $this->assertEquals(3, $parent->getId());
     $this->assertEquals(1, $parent->getRevisionId());
     $this->assertEquals(10, $parent->getLeft());
     $this->assertEquals(21, $parent->getRight());
+    $this->assertEquals(1, $parent->getDepth());
+
+    // Node 6 (leaf) is child of Node 4.
+    $nodeKey = new NodeKey(6, 1);
+    $parent = $this->nestedSet->findParent($nodeKey);
+
+    $this->assertEquals(4, $parent->getId());
+    $this->assertEquals(1, $parent->getRevisionId());
+    $this->assertEquals(3, $parent->getLeft());
+    $this->assertEquals(8, $parent->getRight());
+    $this->assertEquals(2, $parent->getDepth());
+
+    // Node 1 (Root) has no parent.
+    $root = new NodeKey(1, 1);
+    $rootParent = $this->nestedSet->findParent($root);
+    $this->assertNull($rootParent);
 
   }
 

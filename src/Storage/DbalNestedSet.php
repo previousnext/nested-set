@@ -205,11 +205,17 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
    * {@inheritdoc}
    */
   public function findParent(NodeKey $nodeKey) {
-    $ancestors = $this->findAncestors($nodeKey);
-    if (count($ancestors) > 1) {
-      // Parent is 2nd-last element.
-      return $ancestors[count($ancestors) - 2];
+    // Only selecting the closest ancestor node in the tree.
+    $stmt = $this->connection->executeQuery('SELECT parent.id, parent.revision_id, parent.left_pos, parent.right_pos, parent.depth FROM ' . $this->tableName . ' AS child, ' . $this->tableName . ' AS parent WHERE child.left_pos > parent.left_pos AND child.right_pos < parent.right_pos AND child.id = ? AND child.revision_id = ? ORDER BY parent.left_pos DESC LIMIT 1',
+      [$nodeKey->getId(), $nodeKey->getRevisionId()]
+    );
+    $row = $stmt->fetch();
+
+    if ($row) {
+      // There is a parent.
+      return new Node(new NodeKey($row['id'], $row['revision_id']), $row['left_pos'], $row['right_pos'], $row['depth']);
     }
+    // No parent.
     return NULL;
   }
 
