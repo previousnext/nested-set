@@ -2,7 +2,7 @@
 
 namespace PNX\NestedSet\Storage;
 
-use Doctrine\DBAL\Driver\Result;
+use Doctrine\DBAL\Result;
 use PNX\NestedSet\NestedSetInterface;
 use PNX\NestedSet\Node;
 use PNX\NestedSet\NodeKey;
