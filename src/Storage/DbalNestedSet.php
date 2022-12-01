@@ -2,7 +2,6 @@
 
 namespace PNX\NestedSet\Storage;
 
-use Doctrine\DBAL\Driver\Result as DriverResult;
 use Doctrine\DBAL\Result;
 use PNX\NestedSet\NestedSetInterface;
 use PNX\NestedSet\Node;
@@ -152,7 +151,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
         ->setParameter('depth', $start + $depth - 1);
     }
     $stmt = $query->executeQuery();
-    assert($stmt instanceof Result || $stmt instanceof DriverResult);
+    assert($stmt instanceof Result);
     while ($row = $stmt->fetchAssociative()) {
       $descendants[] = new Node(new NodeKey($row['id'], $row['revision_id']), $row['left_pos'], $row['right_pos'], $row['depth']);
     }
@@ -188,7 +187,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
     $stmt = $this->connection->executeQuery('SELECT parent.id, parent.revision_id, parent.left_pos, parent.right_pos, parent.depth FROM ' . $this->tableName . ' AS child, ' . $this->tableName . ' AS parent WHERE child.left_pos BETWEEN parent.left_pos AND parent.right_pos AND child.id = ? AND child.revision_id = ? ORDER BY parent.left_pos',
       [$nodeKey->getId(), $nodeKey->getRevisionId()]
     );
-    assert($stmt instanceof Result || $stmt instanceof DriverResult);
+    assert($stmt instanceof Result);
     while ($row = $stmt->fetchAssociative()) {
       $ancestors[] = new Node(new NodeKey($row['id'], $row['revision_id']), $row['left_pos'], $row['right_pos'], $row['depth']);
     }
@@ -224,7 +223,7 @@ class DbalNestedSet extends BaseDbalStorage implements NestedSetInterface {
   public function getTree(): array {
     $tree = [];
     $stmt = $this->connection->executeQuery('SELECT id, revision_id, left_pos, right_pos, depth FROM ' . $this->tableName . ' ORDER BY left_pos');
-    assert($stmt instanceof Result || $stmt instanceof DriverResult);
+    assert($stmt instanceof Result);
     while ($row = $stmt->fetchAssociative()) {
       $tree[] = new Node(new NodeKey($row['id'], $row['revision_id']), $row['left_pos'], $row['right_pos'], $row['depth']);
     }
