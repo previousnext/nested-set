@@ -27,6 +27,7 @@ class DbalNestedSetSchema extends BaseDbalStorage implements NestedSetSchemaInte
     $tree->addIndex(['id', 'revision_id', 'left_pos', 'right_pos', 'depth']);
     $tree->addIndex(['left_pos', 'right_pos']);
     $tree->addIndex(['right_pos']);
+    $tree->addIndex(['depth']);
 
     foreach ($schema->toSql($this->connection->getDatabasePlatform()) as $sql) {
       $this->connection->executeStatement($sql);
