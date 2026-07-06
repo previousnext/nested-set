@@ -17,8 +17,8 @@ jobs:
       - uses: actions/checkout@v7
       - name: Install dependencies
         run: composer update --prefer-dist --no-progress --no-interaction --optimize-autoloader ${{ matrix.composer-opts }}
-      - name: PHPCS
-        run: ./bin/phpcs --colors --report=full --runtime-set testVersion 8.0-
+      - name: 🧹 PHP CodeSniffer
+        run: ./bin/phpcs --report=checkstyle -q | ./bin/cs2pr
       - name: PHPStan
         run: php -d memory_limit=-1 ./bin/phpstan analyze --no-progress
       - name: ➕ Add matcher
