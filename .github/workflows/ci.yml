@@ -19,8 +19,8 @@ jobs:
         run: composer update --prefer-dist --no-progress --no-interaction --optimize-autoloader ${{ matrix.composer-opts }}
       - name: 🧹 PHP CodeSniffer
         run: ./bin/phpcs --report=checkstyle -q | ./bin/cs2pr
-      - name: PHPStan
-        run: php -d memory_limit=-1 ./bin/phpstan analyze --no-progress
+      - name: 🧹 PHPStan
+        run: ./bin/phpstan --memory-limit=-1 --error-format=github analyse
       - name: ➕ Add matcher
         run: |
           cat << 'EOF' > .github/phpunit-failure.json
