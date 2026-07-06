@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: skpr/php-cli:${{ matrix.php }}-dev-v2-latest
+      options: --user root
     strategy:
       matrix:
         php: ["8.4", "8.5"]
