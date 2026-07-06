@@ -51,6 +51,7 @@ class DbalNestedSetTest extends TestCase {
   protected function setUp(): void {
     $this->connection = DriverManager::getConnection([
       'url' => 'sqlite:///:memory:',
+      'driver' => 'pdo_sqlite',
     ], new Configuration());
 
     $this->schema = new DbalNestedSetSchema($this->connection, $this->tableName);

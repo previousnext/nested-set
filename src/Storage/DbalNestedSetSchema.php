@@ -2,6 +2,8 @@
 
 namespace PNX\NestedSet\Storage;
 
+use Doctrine\DBAL\Schema\Name\UnqualifiedName;
+use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
 use Doctrine\DBAL\Schema\Schema;
 use PNX\NestedSet\NestedSetSchemaInterface;
 
@@ -22,7 +24,13 @@ class DbalNestedSetSchema extends BaseDbalStorage implements NestedSetSchemaInte
     $tree->addColumn("right_pos", "integer", ["unsigned" => TRUE]);
     $tree->addColumn("depth", "integer", ["unsigned" => TRUE]);
 
-    $tree->setPrimaryKey(['id', 'revision_id']);
+    $tree->addPrimaryKeyConstraint(new PrimaryKeyConstraint(
+      UnqualifiedName::unquoted('primary'), [
+        UnqualifiedName::unquoted('id'),
+        UnqualifiedName::unquoted('revision_id'),
+      ],
+      FALSE,
+    ));
     $tree->addIndex(['revision_id']);
     $tree->addIndex(['id', 'revision_id', 'left_pos', 'right_pos', 'depth']);
     $tree->addIndex(['left_pos', 'right_pos']);
