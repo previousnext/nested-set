@@ -1,0 +1,36 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ["8.4", "8.5"]
+        composer-opts: ["", "--prefer-lowest"]
+    container:
+      image: skpr/php-cli:${{ matrix.php }}-v2-stable
+    defaults:
+      run:
+        working-directory: /data
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-progress --no-suggest --no-interaction --optimize-autoloader ${{ matrix.composer-opts }}
+      - name: PHPCS
+        run: ./bin/phpcs --colors --report=full --runtime-set testVersion 8.0-
+      - name: PHPStan
+        run: php -d memory_limit=-1 ./bin/phpstan analyze --no-progress
+      - name: PHPUnit
+        run: |
+          mkdir -p build/phpunit
+          ./bin/phpunit --log-junit build/phpunit/results.xml
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: phpunit-results-${{ matrix.php }}-${{ matrix.composer-opts || 'default' }}
+          path: /data/build
