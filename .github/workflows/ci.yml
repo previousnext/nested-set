@@ -31,4 +31,4 @@ jobs:
         if: success() || failure()
         with:
           name: phpunit-results-${{ matrix.php }}-${{ matrix.composer-opts || 'default' }}
-          path: /data/build
+          path: build
