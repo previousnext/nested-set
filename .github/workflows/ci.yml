@@ -10,12 +10,14 @@ jobs:
       matrix:
         php: ["8.4", "8.5"]
         composer-opts: ["", "--prefer-lowest"]
-    container:
-      image: skpr/php-cli:${{ matrix.php }}-v2-stable
     defaults:
       run:
         working-directory: /data
     steps:
+      - name: Setup PHP with PECL extension
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
       - uses: actions/checkout@v4
       - name: Install dependencies
         run: composer update --prefer-dist --no-progress --no-suggest --no-interaction --optimize-autoloader ${{ matrix.composer-opts }}
