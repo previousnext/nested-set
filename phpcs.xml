@@ -8,7 +8,6 @@
   <arg name="colors"/>
   <arg value="sp"/>
   <rule ref="Drupal"/>
-  <rule ref="PHPCompatibility"/>
   <!-- kill @var for properties since php now has typed props -->
   <rule ref="Drupal.Commenting.VariableComment.Missing">
     <severity>0</severity>

@@ -4,6 +4,7 @@ namespace PNX\NestedSet\Tests\Functional;
 
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\DriverManager;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 use PNX\NestedSet\Node;
 use PNX\NestedSet\NodeKey;
@@ -12,9 +13,8 @@ use PNX\NestedSet\Storage\DbalNestedSetSchema;
 
 /**
  * Tests the Dbal Tree implementation.
- *
- * @group tree
  */
+#[Group('tree')]
 class DbalNestedSetTest extends TestCase {
 
   /**
@@ -51,6 +51,7 @@ class DbalNestedSetTest extends TestCase {
   protected function setUp(): void {
     $this->connection = DriverManager::getConnection([
       'url' => 'sqlite:///:memory:',
+      'driver' => 'pdo_sqlite',
     ], new Configuration());
 
     $this->schema = new DbalNestedSetSchema($this->connection, $this->tableName);
@@ -771,30 +772,6 @@ class DbalNestedSetTest extends TestCase {
         'depth' => 3,
       ]
     );
-  }
-
-  /**
-   * Prints out a tree to the console.
-   *
-   * @param array $tree
-   *   The tree to print.
-   */
-  public function printTree(array $tree) {
-    $table = new \Console_Table(CONSOLE_TABLE_ALIGN_RIGHT);
-    $table->setHeaders(['ID', 'Rev', 'Left', 'Right', 'Depth']);
-    $table->setAlign(0, CONSOLE_TABLE_ALIGN_LEFT);
-    /** @var \PNX\NestedSet\Node $node */
-    foreach ($tree as $node) {
-      $indent = str_repeat('-', $node->getDepth());
-      $table->addRow([
-        $indent . $node->getId(),
-        $node->getRevisionId(),
-        $node->getLeft(),
-        $node->getRight(),
-        $node->getDepth(),
-      ]);
-    }
-    echo PHP_EOL . $table->getTable();
   }
 
   /**

@@ -1,0 +1,34 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: skpr/php-cli:${{ matrix.php }}-dev-v2-latest
+      options: --user root
+    strategy:
+      matrix:
+        php: ["8.4", "8.5"]
+        composer-opts: ["", "--prefer-lowest"]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-progress --no-interaction --optimize-autoloader ${{ matrix.composer-opts }}
+      - name: 🧹 PHP CodeSniffer
+        run: ./bin/phpcs --report=checkstyle -q | ./bin/cs2pr
+      - name: 🧹 PHPStan
+        run: ./bin/phpstan --memory-limit=-1 --error-format=github analyse
+      - name: ➕ Add matcher
+        run: |
+          cat << 'EOF' > .github/phpunit-failure.json
+          {"problemMatcher":[{"owner":"phpunit-failure","severity":"error","pattern":[{"regexp":"##teamcity\\[testFailed[^\\]]*message='([^']*)'[^\\]]*details='([^:]+):(\\d+)","message":1,"file":2,"line":3}]}]}
+          EOF
+          echo "::add-matcher::.github/phpunit-failure.json"
+      - name: ⚡ Run Unit Tests
+        run: ./bin/phpunit --teamcity
+      - name: ➖ Remove matcher
+        if: always()
+        run: echo "::remove-matcher owner=phpunit-failure::"

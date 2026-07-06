@@ -2,8 +2,6 @@
 
 A PHP Doctrine DBAL implementation for Nested Sets.
 
-[![CircleCI](https://circleci.com/gh/previousnext/nested-set.svg?style=svg)](https://circleci.com/gh/previousnext/nested-set)
-
 ## Using
 
 ### Create table schema
@@ -67,7 +65,7 @@ See `\PNX\NestedSet\NestedSetInterface` for many more methods that can be used f
 To install all dependencies, run:
 
 ```
-make init
+composer install
 ```
 
 ### Linting
@@ -77,13 +75,13 @@ Uses the Drupal coding standard.
 To validate code sniffs run: 
 
 ```
-make lint-php
+./bin/phpcs
 ```
 
 To automatically fix code sniff issues, run:
 
 ```
-make fix-php
+./bin/phpcbf
 ```
 
 
@@ -92,5 +90,5 @@ make fix-php
 To run all phpunit tests, run:
 
 ```
-make test
+./bin/phpunit
 ```

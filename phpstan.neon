@@ -1,8 +1,8 @@
 parameters:
   level: 6
-  checkMissingIterableValueType: false
   paths:
     - src
   customRulesetUsed: true
+  # dbal 3/4 shim ignores only match one major at a time.
   reportUnmatchedIgnoredErrors: false
   ignoreErrors: {  }
