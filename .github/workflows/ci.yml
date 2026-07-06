@@ -10,9 +10,6 @@ jobs:
       matrix:
         php: ["8.4", "8.5"]
         composer-opts: ["", "--prefer-lowest"]
-    defaults:
-      run:
-        working-directory: /data
     steps:
       - name: Setup PHP with PECL extension
         uses: shivammathur/setup-php@v2
