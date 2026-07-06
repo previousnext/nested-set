@@ -24,19 +24,13 @@ class DbalNestedSetSchema extends BaseDbalStorage implements NestedSetSchemaInte
     $tree->addColumn("right_pos", "integer", ["unsigned" => TRUE]);
     $tree->addColumn("depth", "integer", ["unsigned" => TRUE]);
 
-    // @phpstan-ignore function.alreadyNarrowedType
-    if (\method_exists($tree, 'addPrimaryKeyConstraint')) {
+    if (\class_exists('\Doctrine\DBAL\Schema\Name\UnqualifiedName')) {
       // doctrine/dbal 4.
-      // @phpstan-ignore class.notFound
-      $primary = UnqualifiedName::unquoted('primary');
-      $columns = [
-        // @phpstan-ignore class.notFound
-        UnqualifiedName::unquoted('id'),
-        // @phpstan-ignore class.notFound
-        UnqualifiedName::unquoted('revision_id'),
-      ];
       // @phpstan-ignore method.notFound, class.notFound
-      $tree->addPrimaryKeyConstraint(new PrimaryKeyConstraint($primary, $columns, FALSE));
+      $tree->addPrimaryKeyConstraint(new PrimaryKeyConstraint(UnqualifiedName::unquoted('primary'), [
+        UnqualifiedName::unquoted('id'),
+        UnqualifiedName::unquoted('revision_id'),
+      ], FALSE));
     }
     else {
       // doctrine/dbal 3.
