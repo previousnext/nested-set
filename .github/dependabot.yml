@@ -11,8 +11,13 @@ updates:
     commit-message:
       prefix: "build"
       include: "scope"
+    cooldown:
+      default-days: 2
     groups:
       composer-deps:
+        patterns: [ "*" ]
+      composer-security-deps:
+        applies-to: security-updates
         patterns: [ "*" ]
 
   - package-ecosystem: "github-actions"
@@ -25,6 +30,11 @@ updates:
     commit-message:
       prefix: "build"
       include: "scope"
+    cooldown:
+      default-days: 2
     groups:
       github-actions-deps:
+        patterns: [ "*" ]
+      github-actions-security-deps:
+        applies-to: security-updates
         patterns: [ "*" ]
