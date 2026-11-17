@@ -16,6 +16,10 @@ updates:
     groups:
       composer-deps:
         patterns: [ "*" ]
+        update-types: [ "minor", "patch" ]
+      composer-major-deps:
+        patterns: [ "*" ]
+        update-types: [ "major" ]
       composer-security-deps:
         applies-to: security-updates
         patterns: [ "*" ]
@@ -35,6 +39,10 @@ updates:
     groups:
       github-actions-deps:
         patterns: [ "*" ]
+        update-types: [ "minor", "patch" ]
+      github-actions-major-deps:
+        patterns: [ "*" ]
+        update-types: [ "major" ]
       github-actions-security-deps:
         applies-to: security-updates
         patterns: [ "*" ]
